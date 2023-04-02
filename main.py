@@ -109,11 +109,11 @@ class Game:
 		if self.turn == GREEN:
 			self.green += 1
 			self.turn = MAGENTA
-			self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta) + " MS? " + str(self.check_if_magenta_stays()) )
+			self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta))
 		else:
 			self.magenta += 1
 			self.turn = GREEN
-			self.graphics.draw_message("Next Turn: Green. Counter: " + str(self.green) + " GS? " + str(self.check_if_green_stays()))
+			self.graphics.draw_message("Next Turn: Green. Counter: " + str(self.green))
 
 		self.selected_piece = None
 		self.selected_legal_moves = []

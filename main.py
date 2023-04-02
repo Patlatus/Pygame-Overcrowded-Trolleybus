@@ -36,7 +36,7 @@ class Game:
 
 	def event_loop(self):
 		"""
-		The event loop. This is where events are triggeMAGENTA 
+		The event loop. This is where events are triggered
 		(like a mouse click) and then effect the game state.
 		"""
 		self.mouse_pos = self.graphics.board_coords(pygame.mouse.get_pos()) # what square is the mouse in?

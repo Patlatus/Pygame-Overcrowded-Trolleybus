@@ -4,7 +4,7 @@ GOLD     = (255, 215,   0)
 HIGH     = (160, 190, 255)
 class Graphics:
     def __init__(self):
-        self.caption = "Overcrowded Trolleybus"
+        self.caption = "Overcrowded Trolleybus/Напханий тролейбус"
 
         self.fps = 60
         self.clock = pygame.time.Clock()
@@ -39,16 +39,6 @@ class Graphics:
 
         pygame.display.update()
         self.clock.tick(self.fps)
-
-    def draw_board_squares(self, board):
-        """
-        Takes a board object and draws all of its squares to the display
-        """
-        """for x in range(8):
-            for y in range(8):
-                #pygame.draw.rect(self.screen, board[x][y].color,
-                #                 (x * self.square_size, y * self.square_size, self.square_size, self.square_size), )
-        """
 
     def draw_board_pieces(self, board):
         """

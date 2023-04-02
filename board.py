@@ -152,8 +152,7 @@ class Board:
         """
         Removes a piece from the board at position (x,y).
         """
-        x = pixel[0]
-        y = pixel[1]
+        x,y = pixel
         self.matrix[x][y].occupant = None
 
     def move_piece(self, start, finish):
@@ -166,29 +165,13 @@ class Board:
         self.matrix[fx][fy].occupant = self.matrix[sx][sy].occupant
         self.remove_piece((sx, sy))
 
-    """def is_end_square(self, coords):
-        
-        Is passed a coordinate tuple (x,y), and returns true or
-        false depending on if that square on the board is an end square.
 
-        ===DOCTESTS===
 
-        >>> board = Board()
 
-        >>> board.is_end_square((2,7))
-        True
 
-        >>> board.is_end_square((5,0))
-        True
 
-        >>>board.is_end_square((0,5))
-        False
  
 
-        if coords[1] == 0 or coords[1] == 7:
-            return True
-        else:
-            return False"""
 
     def on_board(self, pixel):
         """

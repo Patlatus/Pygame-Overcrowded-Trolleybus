@@ -30,6 +30,9 @@ class Game:
 		self.hop = False
 		self.selected_legal_moves = []
 
+		self.TICK = pygame.USEREVENT
+		pygame.time.set_timer(self.TICK, 500)
+
 	def setup(self):
 		"""Draws the window and board at the beginning of the game"""
 		self.graphics.setup_window()
@@ -47,6 +50,9 @@ class Game:
 
 			if event.type == QUIT:
 				self.terminate_game()
+			if event.type == self.TICK:
+				self.graphics.tick()
+
 			if not self.end and event.type == MOUSEBUTTONDOWN and self.board.on_board(self.mouse_pos):
 				if self.hop == False:
 					if self.board.location(self.mouse_pos).occupant != None and self.board.location(self.mouse_pos).occupant.color == self.turn:

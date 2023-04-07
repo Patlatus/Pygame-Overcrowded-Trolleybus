@@ -8,6 +8,7 @@ from pygame.locals import *
 
 from graphics import Graphics
 from board import *
+from button import Button
 
 pygame.font.init()
 
@@ -32,11 +33,46 @@ class Game:
 
 		self.TICK = pygame.USEREVENT
 		pygame.time.set_timer(self.TICK, 500)
+		self.show_menu = False
+		self.show_main_menu = False
+		self.show_options = False
+
+		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
+								  text_input="RESUME GAME", font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+		self.restart_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
+								  text_input="RESTART GAME", font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+		# pygame.image.load("assets/Options Rect.png")
+		self.options_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 6),
+									 text_input="OPTIONS", font=self.get_font(75), base_color="#d7fcd4",
+									 hovering_color="White")
+		# pygame.image.load("assets/Quit Rect.png")
+		self.quit_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
+								  text_input="QUIT", font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+
+		self.human_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
+								  text_input="HUMAN VS HUMAN", font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+		self.ai_starts = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
+								  text_input="AI VS HUMAN", font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+		# pygame.image.load("assets/Options Rect.png")
+		self.ai_strikes_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 6),
+									 text_input="HUMAN VS AI", font=self.get_font(75), base_color="#d7fcd4",
+									 hovering_color="White")
+		self.options_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
+							  text_input="BACK", font=self.get_font(75), base_color="#d7fcd4",
+							  hovering_color="White")
 
 	def setup(self):
 		"""Draws the window and board at the beginning of the game"""
 		self.graphics.setup_window()
 
+	def get_font(self, size):
+		return pygame.font.SysFont("comicsans", 40)  # pygame.font.Font("assets/font.ttf", size)
+	
 	def event_loop(self):
 		"""
 		The event loop. This is where events are triggered
@@ -50,11 +86,44 @@ class Game:
 
 			if event.type == QUIT:
 				self.terminate_game()
-			if event.type == self.TICK:
+			if not self.show_menu and event.type == self.TICK:
 				self.graphics.tick()
 
-			if not self.end and event.type == MOUSEBUTTONDOWN and self.board.on_board(self.mouse_pos):
-				if self.hop == False:
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_ESCAPE:
+					self.show_menu = not self.show_menu
+					if not self.show_main_menu and not self.show_options:
+						self.show_main_menu = self.show_menu
+
+			if self.show_main_menu and event.type == pygame.MOUSEBUTTONDOWN:
+				mouse_pos = pygame.mouse.get_pos()
+				if self.play_button.checkForInput(mouse_pos):
+					self.show_main_menu = False
+					self.show_menu = False
+				if self.restart_button.checkForInput(mouse_pos):
+					self.restart()
+					self.show_main_menu = False
+					self.show_menu = False
+				if self.options_button.checkForInput(mouse_pos):
+					self.show_main_menu = False
+					self.show_options = True
+				if self.quit_button.checkForInput(mouse_pos):
+					self.terminate_game()
+			if self.show_options:
+				self.display_options()
+
+			if self.show_options and event.type == pygame.MOUSEBUTTONDOWN:
+				mouse_pos = pygame.mouse.get_pos()
+				if self.options_back.checkForInput(mouse_pos):
+					self.show_options = False
+					self.show_main_menu = True
+
+			if self.show_main_menu:
+				self.display_main_menu()
+
+
+			elif not self.end and event.type == MOUSEBUTTONDOWN and self.board.on_board(self.mouse_pos):
+				if not self.hop:
 					if self.board.location(self.mouse_pos).occupant != None and self.board.location(self.mouse_pos).occupant.color == self.turn:
 						self.selected_piece = self.mouse_pos
 
@@ -76,9 +145,53 @@ class Game:
 					else:
 						self.end_turn()
 
+	def display_main_menu(self):
+		self.graphics.screen.fill("black")
+
+		menu_text = self.get_font(100).render("MAIN MENU", True, "#b68f40")
+		menu_rect = menu_text.get_rect(center=(self.graphics.window_size >> 1, self.graphics.window_size // 6))
+
+		# pygame.image.load("assets/Play Rect.png")
+
+		self.graphics.screen.blit(menu_text, menu_rect)
+
+		mouse_pos = pygame.mouse.get_pos()
+		for button in [self.play_button, self.restart_button, self.options_button, self.quit_button]:
+			button.changeColor(mouse_pos)
+			button.update(self.graphics.screen)
+		pygame.display.update()
+
+	def display_options(self):
+		mouse_pos = pygame.mouse.get_pos()
+
+		self.graphics.screen.fill("black")
+
+		options_text = self.get_font(45).render("GAME OPTIONS", True, "#b68f40")
+		options_rect = options_text.get_rect(center=(self.graphics.window_size >> 1, self.graphics.window_size // 6))
+		self.graphics.screen.blit(options_text, options_rect)
+
+		for button in [self.human_choice, self.ai_starts, self.ai_strikes_back, self.options_back]:
+			button.changeColor(mouse_pos)
+			button.update(self.graphics.screen)
+
+		pygame.display.update()
+
+	def restart(self):
+		self.green = 1
+		self.magenta = 1
+		self.hop = False
+		self.turn = GREEN
+		self.selected_legal_moves = []
+		self.selected_piece = None
+		self.board.matrix = self.board.new_board()
+		self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta))
+		self.graphics.update_display(self.board, self.selected_legal_moves, self.selected_piece)
+
 	def update(self):
 		"""Calls on the graphics class to update the game display."""
-		self.graphics.update_display(self.board, self.selected_legal_moves, self.selected_piece)
+		if not self.show_menu:
+			self.graphics.update_display(self.board, self.selected_legal_moves, self.selected_piece)
+
 
 	def terminate_game(self):
 		Game.run = False

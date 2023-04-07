@@ -9,6 +9,7 @@ from pygame.locals import *
 from graphics import Graphics
 from board import *
 from button import Button
+from ai import Ai
 
 pygame.font.init()
 
@@ -25,6 +26,7 @@ class Game:
 		self.end = False
 		self.graphics = Graphics()
 		self.board = Board()
+		self.ai = Ai(self.board)
 		
 		self.turn = GREEN
 		self.selected_piece = None # a board location. 
@@ -94,8 +96,7 @@ class Game:
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
 					self.show_menu = not self.show_menu
-					if not self.show_main_menu and not self.show_options:
-						self.show_main_menu = self.show_menu
+					self.show_main_menu = not self.show_options and self.show_menu
 
 			if self.show_options and event.type == pygame.MOUSEBUTTONDOWN:
 				mouse_pos = pygame.mouse.get_pos()
@@ -106,9 +107,15 @@ class Game:
 				if self.ai_starts.checkForInput(mouse_pos):
 					self.ai_green = True
 					self.ai_magenta = False
+					#print('ai green: ', self.ai_green, 'ai ai_magenta: ', self.ai_magenta, ' is human turn? ', self.is_human_turn())
+					if not self.is_human_turn():
+						self.perform_ai_turn()
 				if self.ai_strikes_back.checkForInput(mouse_pos):
 					self.ai_green = False
 					self.ai_magenta = True
+					#print('ai green: ', self.ai_green, 'ai ai_magenta: ', self.ai_magenta, ' is human turn? ', self.is_human_turn())
+					if not self.is_human_turn():
+						self.perform_ai_turn()
 
 				if self.options_back.checkForInput(mouse_pos):
 					self.show_options = False
@@ -128,16 +135,14 @@ class Game:
 					self.show_options = True
 				if self.quit_button.checkForInput(mouse_pos):
 					self.terminate_game()
-			if self.show_options:
-				self.display_options()
 
+			if self.show_menu:
+				if self.show_main_menu:
+					self.display_main_menu()
+				elif self.show_options:
+					self.display_options()
 
-
-			if self.show_main_menu:
-				self.display_main_menu()
-
-
-			elif not self.end and event.type == MOUSEBUTTONDOWN and self.board.on_board(self.mouse_pos):
+			elif not self.end and self.is_human_turn() and event.type == MOUSEBUTTONDOWN and self.board.on_board(self.mouse_pos):
 				if not self.hop:
 					if self.board.location(self.mouse_pos).occupant != None and self.board.location(self.mouse_pos).occupant.color == self.turn:
 						self.selected_piece = self.mouse_pos
@@ -159,6 +164,13 @@ class Game:
 						self.selected_piece = self.mouse_pos
 					else:
 						self.end_turn()
+
+	def is_human_turn(self):
+		#print('self.turn: ', self.turn)
+
+		#print('!ai m && t = M: ', not self.ai_magenta and self.turn == MAGENTA, '!ai g && t = g: ', not self.ai_green and self.turn == GREEN)
+
+		return not self.ai_magenta and self.turn == MAGENTA or not self.ai_green and self.turn == GREEN
 
 	def display_main_menu(self):
 		self.graphics.screen.fill("black")
@@ -248,6 +260,7 @@ class Game:
 			self.green += 1
 			self.turn = MAGENTA
 			self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta))
+
 		else:
 			self.magenta += 1
 			self.turn = GREEN
@@ -263,6 +276,34 @@ class Game:
 				self.graphics.draw_message("MAGENTA WINS!")
 			else:
 				self.graphics.draw_message("GREEN WINS!")
+		self.perform_ai_turn()
+
+	def perform_ai_turn(self):
+		if self.turn == MAGENTA and self.ai_magenta:
+			self.ai.turn_magenta()
+			if self.post_check_for_endgame():
+				self.end = True
+				self.graphics.draw_message("GREEN WINS!")
+
+			self.magenta += 1
+			self.turn = GREEN
+			self.graphics.draw_message("Next Turn: Green. Counter: " + str(self.green))
+			if self.pre_check_for_endgame():
+				self.end = True
+				self.graphics.draw_message("MAGENTA WINS!")
+		if self.turn == GREEN and self.ai_green:
+			self.ai.turn_green()
+			if self.post_check_for_endgame():
+				self.end = True
+				self.graphics.draw_message("MAGENTA WINS!")
+
+			self.green += 1
+			self.turn = MAGENTA
+			self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta))
+			if self.pre_check_for_endgame():
+				self.end = True
+				self.graphics.draw_message("GREEN WINS!")
+
 	def check_if_magenta_completes(self):
 		for x in range(4, 8):
 			for y in range(4, 8):

@@ -26,7 +26,7 @@ class Game:
 		self.end = False
 		self.graphics = Graphics()
 		self.board = Board()
-		self.ai = Ai(self.board)
+		self.ai = Ai(self.graphics, self.board)
 		
 		self.turn = GREEN
 		self.selected_piece = None # a board location. 
@@ -98,7 +98,7 @@ class Game:
 					self.show_menu = not self.show_menu
 					self.show_main_menu = not self.show_options and self.show_menu
 
-			if self.show_options and event.type == pygame.MOUSEBUTTONDOWN:
+			if self.show_menu and self.show_options and event.type == pygame.MOUSEBUTTONDOWN:
 				mouse_pos = pygame.mouse.get_pos()
 
 				if self.human_choice.checkForInput(mouse_pos):
@@ -121,7 +121,7 @@ class Game:
 					self.show_options = False
 					self.show_main_menu = True
 
-			elif self.show_main_menu and event.type == pygame.MOUSEBUTTONDOWN:
+			elif self.show_menu and self.show_main_menu and event.type == pygame.MOUSEBUTTONDOWN:
 				mouse_pos = pygame.mouse.get_pos()
 				if self.play_button.checkForInput(mouse_pos):
 					self.show_main_menu = False
@@ -241,6 +241,7 @@ class Game:
 		sys.exit()
 
 	def end_turn(self):
+		#print("End of turn")
 		"""
 		End the turn. Switches the current player. 
 		end_turn() also checks for and game and resets a lot of class attributes.
@@ -276,10 +277,13 @@ class Game:
 				self.graphics.draw_message("MAGENTA WINS!")
 			else:
 				self.graphics.draw_message("GREEN WINS!")
+		#print("Checking AI Turn")
 		self.perform_ai_turn()
 
 	def perform_ai_turn(self):
+		#print("self.turn", self.turn, ' ai m ', self.ai_magenta)
 		if self.turn == MAGENTA and self.ai_magenta:
+			#print("running AI Magenta turn")
 			self.ai.turn_magenta()
 			if self.post_check_for_endgame():
 				self.end = True
@@ -291,7 +295,9 @@ class Game:
 			if self.pre_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("MAGENTA WINS!")
+		#print("self.turn", self.turn, ' ai g ', self.ai_green)
 		if self.turn == GREEN and self.ai_green:
+			#print("running AI Green turn")
 			self.ai.turn_green()
 			if self.post_check_for_endgame():
 				self.end = True

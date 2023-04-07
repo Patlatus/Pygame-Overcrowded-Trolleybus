@@ -208,6 +208,7 @@ class Game:
 		pygame.display.update()
 
 	def restart(self):
+		self.end = False
 		self.green = 1
 		self.magenta = 1
 		self.hop = False
@@ -241,7 +242,7 @@ class Game:
 		sys.exit()
 
 	def end_turn(self):
-		#print("End of turn")
+		print("End of turn")
 		"""
 		End the turn. Switches the current player. 
 		end_turn() also checks for and game and resets a lot of class attributes.
@@ -278,7 +279,8 @@ class Game:
 			else:
 				self.graphics.draw_message("GREEN WINS!")
 		#print("Checking AI Turn")
-		self.perform_ai_turn()
+		if not self.end:
+			self.perform_ai_turn()
 
 	def perform_ai_turn(self):
 		#print("self.turn", self.turn, ' ai m ', self.ai_magenta)
@@ -288,6 +290,7 @@ class Game:
 			if self.post_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("GREEN WINS!")
+				return
 
 			self.magenta += 1
 			self.turn = GREEN
@@ -295,6 +298,7 @@ class Game:
 			if self.pre_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("MAGENTA WINS!")
+				return
 		#print("self.turn", self.turn, ' ai g ', self.ai_green)
 		if self.turn == GREEN and self.ai_green:
 			#print("running AI Green turn")
@@ -302,6 +306,7 @@ class Game:
 			if self.post_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("MAGENTA WINS!")
+				return
 
 			self.green += 1
 			self.turn = MAGENTA
@@ -309,6 +314,7 @@ class Game:
 			if self.pre_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("GREEN WINS!")
+				return
 
 	def check_if_magenta_completes(self):
 		for x in range(4, 8):
@@ -364,6 +370,7 @@ class Game:
 		"""
 		Checks to see if a player has stayed in his field for longer than 50 turns or moves back after 50th turn
 		"""
+		print("post check for end: g ", self.green, " s? ", self.check_if_green_stays(), " m ", self.magenta, " ms? ", self.check_if_magenta_stays() )
 		if self.turn == GREEN:
 			if self.green > 50 and self.check_if_green_stays():
 				return True

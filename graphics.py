@@ -32,7 +32,7 @@ class Graphics:
         """
         self.screen.blit(self.background, (0, 0))
 
-        self.highlight_squares(legal_moves, selected_piece)
+        self.highlight_squares(legal_moves)
         self.draw_board_pieces(board)
         self.highlight_selected(selected_piece)
 

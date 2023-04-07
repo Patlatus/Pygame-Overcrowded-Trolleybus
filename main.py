@@ -36,6 +36,8 @@ class Game:
 		self.show_menu = False
 		self.show_main_menu = False
 		self.show_options = False
+		self.ai_green = False
+		self.ai_magenta = False
 
 		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
 								  text_input="RESUME GAME", font=self.get_font(75), base_color="#d7fcd4",
@@ -95,7 +97,24 @@ class Game:
 					if not self.show_main_menu and not self.show_options:
 						self.show_main_menu = self.show_menu
 
-			if self.show_main_menu and event.type == pygame.MOUSEBUTTONDOWN:
+			if self.show_options and event.type == pygame.MOUSEBUTTONDOWN:
+				mouse_pos = pygame.mouse.get_pos()
+
+				if self.human_choice.checkForInput(mouse_pos):
+					self.ai_green = False
+					self.ai_magenta = False
+				if self.ai_starts.checkForInput(mouse_pos):
+					self.ai_green = True
+					self.ai_magenta = False
+				if self.ai_strikes_back.checkForInput(mouse_pos):
+					self.ai_green = False
+					self.ai_magenta = True
+
+				if self.options_back.checkForInput(mouse_pos):
+					self.show_options = False
+					self.show_main_menu = True
+
+			elif self.show_main_menu and event.type == pygame.MOUSEBUTTONDOWN:
 				mouse_pos = pygame.mouse.get_pos()
 				if self.play_button.checkForInput(mouse_pos):
 					self.show_main_menu = False
@@ -112,11 +131,7 @@ class Game:
 			if self.show_options:
 				self.display_options()
 
-			if self.show_options and event.type == pygame.MOUSEBUTTONDOWN:
-				mouse_pos = pygame.mouse.get_pos()
-				if self.options_back.checkForInput(mouse_pos):
-					self.show_options = False
-					self.show_main_menu = True
+
 
 			if self.show_main_menu:
 				self.display_main_menu()
@@ -169,6 +184,10 @@ class Game:
 		options_text = self.get_font(45).render("GAME OPTIONS", True, "#b68f40")
 		options_rect = options_text.get_rect(center=(self.graphics.window_size >> 1, self.graphics.window_size // 6))
 		self.graphics.screen.blit(options_text, options_rect)
+
+		self.human_choice.selected = not (self.ai_green or self.ai_magenta)
+		self.ai_starts.selected = self.ai_green
+		self.ai_strikes_back.selected = self.ai_magenta
 
 		for button in [self.human_choice, self.ai_starts, self.ai_strikes_back, self.options_back]:
 			button.changeColor(mouse_pos)

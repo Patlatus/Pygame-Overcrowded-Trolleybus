@@ -10,6 +10,7 @@ from graphics import Graphics
 from board import *
 from button import Button
 from ai import Ai
+from old_ai import OldAi
 
 pygame.font.init()
 
@@ -27,6 +28,7 @@ class Game:
 		self.graphics = Graphics()
 		self.board = Board()
 		self.ai = Ai(self.graphics, self.board)
+		self.oldai = OldAi(self.graphics, self.board)
 		
 		self.turn = GREEN
 		self.selected_piece = None # a board location. 
@@ -40,6 +42,11 @@ class Game:
 		self.show_options = False
 		self.ai_green = False
 		self.ai_magenta = False
+
+		# Temporary settings to check how two AI can compete
+		self.ai_green = True
+		self.ai_magenta = True
+		self.perform_ai_turn()
 
 		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
 								  text_input="RESUME GAME", font=self.get_font(75), base_color="#d7fcd4",
@@ -90,6 +97,12 @@ class Game:
 
 			if event.type == QUIT:
 				self.terminate_game()
+
+			if not self.is_human_turn() and not self.end:
+				pygame.time.delay(1000)
+				self.perform_ai_turn()
+				pygame.time.delay(1000)
+
 			if not self.show_menu and event.type == self.TICK:
 				self.graphics.tick()
 
@@ -303,7 +316,8 @@ class Game:
 		print("self.turn", self.turn, ' ai g ', self.ai_green)
 		if self.turn == GREEN and self.ai_green:
 			#print("running AI Green turn")
-			self.ai.turn_green()
+			self.oldai.turn_green()
+			#self.ai.turn_green()
 			if self.post_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("MAGENTA WINS!")

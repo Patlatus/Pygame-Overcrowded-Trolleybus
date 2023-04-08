@@ -10,7 +10,8 @@ from graphics import Graphics
 from board import *
 from button import Button
 from ai import Ai
-from old_ai import OldAi
+#from old_ai import OldAi
+from improved_old_ai import ImprovedOldAi
 
 pygame.font.init()
 
@@ -28,7 +29,7 @@ class Game:
 		self.graphics = Graphics()
 		self.board = Board()
 		self.ai = Ai(self.graphics, self.board)
-		self.oldai = OldAi(self.graphics, self.board)
+		self.oldai = ImprovedOldAi(self.graphics, self.board)
 		
 		self.turn = GREEN
 		self.selected_piece = None # a board location. 

@@ -243,6 +243,7 @@ class Game:
 
 	def end_turn(self):
 		print("End of turn")
+		print("==============================================================================================")
 		"""
 		End the turn. Switches the current player. 
 		end_turn() also checks for and game and resets a lot of class attributes.

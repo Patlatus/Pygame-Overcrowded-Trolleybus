@@ -63,6 +63,17 @@ class ImprovedOldAi():
                                 print("Improved; s: ", start, ' st ', step)
                                 return [start, step]
         print("All pieces moved out of the base???")
+
+        last_completed_line = -1
+        for y in range(4):
+            for x in range(4, 8):
+                start = (x, y)
+                piece = self.board.location(start).occupant
+                if piece is None or piece.color != GREEN:
+                    break
+            last_completed_line = y
+
+
         for x in reversed(range(8)):
             for y in range(1, 8):
                 start = (x, y)
@@ -70,12 +81,12 @@ class ImprovedOldAi():
                 if piece is not None and piece.color == GREEN:
                     step = self.rel(start, NORTH)
                     sp = self.board.location(step).occupant
-                    if sp is None:
+                    if sp is None and (x >= 4 or y > last_completed_line):
                         return [start, step]
                     if y > 1:
                         hop = self.rel2(start, NORTH)
                         hp = self.board.location(hop).occupant
-                        if sp is not None and hp is None:
+                        if sp is not None and hp is None and (x >= 4 or y > last_completed_line):
                             return [start, hop]
 
         for x in range(7):
@@ -139,7 +150,14 @@ class ImprovedOldAi():
                                 print("Improved; s: ", start, ' st ', step)
                                 return [start, step]
         print("All pieces moved out of the base???")
-
+        last_completed_line = 8
+        for y in reversed(range(4, 8)):
+            for x in range(4, 8):
+                start = (x, y)
+                piece = self.board.location(start).occupant
+                if piece is None or piece.color != MAGENTA:
+                    break
+            last_completed_line = y
         for x in reversed(range(8)):
             for y in range(7):
                 start = (x, y)
@@ -147,12 +165,12 @@ class ImprovedOldAi():
                 if piece is not None and piece.color == MAGENTA:
                     step = self.rel(start, SOUTH)
                     sp = self.board.location(step).occupant
-                    if sp is None:
+                    if sp is None and (x >= 4 or y < last_completed_line):
                         return [start, step]
                     if y < 6:
                         hop = self.rel2(start, SOUTH)
                         hp = self.board.location(hop).occupant
-                        if sp is not None and hp is None:
+                        if sp is not None and hp is None and (x >= 4 or y < last_completed_line):
                             return [start, hop]
 
         for x in range(7):

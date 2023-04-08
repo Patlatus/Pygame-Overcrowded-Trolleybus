@@ -45,7 +45,7 @@ class Ai():
         return result
 
 
-    def build_rec(self, pos, travelled):
+    def build_rec(self, pos, travelled, helpers):
         best_score = None
         best_result = []
         hops = self.hops(pos)
@@ -56,9 +56,9 @@ class Ai():
             if not travelled[x][y]:
                 travelled[x][y] = True
                 current_result = [hop]
-                current_result += self.build_rec((x, y), travelled)
+                current_result += self.build_rec((x, y), travelled, helpers)
                 travelled[x][y] = False
-                score = self.evaluate(pos, current_result)
+                score = self.evaluate(pos, current_result, helpers)
                 if best_score is None:
                     print("Best score: ", score, " result: ", pos, current_result)
                     best_score = score
@@ -76,82 +76,200 @@ class Ai():
         x,y = pos
         return x >= 4 and (self.magenta == (y >= 4))
 
-    def evaluate(self, pos, path):
+    def distance(self, start, finish):
+        sx, sy = start
+        fx, fy = finish
+        return 7 + fx - sx + 2 * (fy - sy) * (1 if self.magenta else -1)
+
+    def evaluate(self, pos, path, helpers):
         start = pos
         end = pos
         for hop in path:
             end = self.rel2(end, hop)
 
-        if len(path) > 0:
-            print("self.magenta", self.magenta, " m==y<4", (self.magenta == (start[1] < 4)),  "start", start, "end", end, "ah?s ", self.at_home(start), " ad?e", self.at_dest(end), " ah?e ", self.at_home(end))
-        if self.at_home(start) and self.at_dest(end):
-            return 100 * len(path)
-        elif self.at_home(end):
-            return 0
-        elif not self.at_home(start) and not self.at_dest(start) and self.at_dest(end):
-            return 50 * len(path)
-        elif self.at_home(start) and not self.at_home(end):
-            return 20 * len(path)
-        elif not self.at_dest(start) and not self.at_home(end):
-            return 10 * len(path)
-        else:
-            return len(path)
+        bonus = 0
+        if self.at_dest(end):
+            bonus += 60
+        if self.at_home(start):
+            bonus += 40
+        if self.at_home(end):
+            bonus -= 60
+
+        sx, sy = start
+        ex, ey = end
+
+        bonus += 20 * helpers['add'][ex][ey]
+        bonus += 20 * helpers['rem'][sx][sy]
+
+
+        return self.distance(start, end) + bonus if len(path) > 0 else 0
+
+    """if len(path) > 0:
+        print("self.magenta", self.magenta, " m==y<4", (self.magenta == (start[1] < 4)), "start", start, "end", end,
+              "ah?s ", self.at_home(start), " ad?e", self.at_dest(end), " ah?e ", self.at_home(end))
+    if self.at_home(start) and self.at_dest(end):
+        return 100 * len(path)
+    elif self.at_home(end):
+        return 0
+    elif not self.at_home(start) and not self.at_dest(start) and self.at_dest(end):
+        return 50 * len(path)
+    elif self.at_home(start) and not self.at_home(end):
+        return 20 * len(path)
+    elif not self.at_dest(start) and not self.at_home(end):
+        return 10 * len(path)
+    else:
+        return len(path)"""
+
+    def evaluateStep(self, pos, dir, helpers):
+        start = pos
+        end = self.rel(pos, dir)
+
+        bonus = 0
+        if self.at_dest(end):
+            print('giving +60 bonus for reaching destination')
+            bonus += 60
+        if self.at_home(start):
+            print('giving +40 bonus for leaving home base')
+            bonus += 40
+        if self.at_home(end):
+            print('removing -60 bonus for staying or returning to home base')
+            bonus -= 60
+
+        sx, sy = start
+        ex, ey = end
+
+        print('Add helpers: ', helpers['add'][ex][ey]);
+        print('bonus for add helper: ', 20 * helpers['add'][ex][ey]);
+
+        bonus += 20 * helpers['add'][ex][ey]
+        print('Rem helpers: ', helpers['rem'][sx][sy]);
+        print('bonus for rem helper: ', 20 * helpers['rem'][sx][sy]);
+        bonus += 20 * helpers['rem'][sx][sy]
+        print("Dir: ", dir, ' di: ', self.dirs().index(dir))
+        print('step helpers: ', helpers['step'][sx][sy][self.dirs().index(dir)]);
+        print('bonus for step helper: ', 50 * helpers['step'][sx][sy][self.dirs().index(dir)]);
+
+        bonus += 50 * helpers['step'][sx][sy][self.dirs().index(dir)]
+
+        return self.distance(start, end) + bonus
+
+
+    def hopsHelpers(self, pos, helpers_add, helpers_rem, helpers_step):
+        result = []
+        for dir in self.steps(pos):
+            step = self.rel(pos, dir)
+            hop = self.rel2(pos, dir)
+            if self.board.on_board(hop):
+                step_piece = self.board.location(step).occupant
+                hop_piece = self.board.location(hop).occupant
+                if hop_piece is None and step_piece is not None:
+                    result.append(dir)
+                elif hop_piece is not None and step_piece is not None:
+                    hx, hy = hop
+                    helpers_rem[hx][hy] += 1
+                    if (hop_piece.color == MAGENTA) == self.magenta:
+                        di = 0
+                        for dir2 in self.steps(hop):
+                            step2 = self.rel(hop, dir2)
+                            hop2 = self.rel2(hop, dir2)
+                            if hop2 != pos and self.board.on_board(hop2):
+                                step_piece2 = self.board.location(step2).occupant
+                                hop_piece2 = self.board.location(hop2).occupant
+                                if hop_piece2 is None and step_piece2 is None:
+                                    helpers_step[hx][hy][di] += 1
+                            di += 1
+
+                elif hop_piece is None and step_piece is None:
+                    sx, sy = step
+                    helpers_add[sx][sy] += 1
+
+
+        return result
+
+
+    def traverse(self, pos, travelled, helpers_add, helpers_rem, helpers_step):
+        hops = self.hopsHelpers(pos, helpers_add, helpers_rem, helpers_step)
+        if len(hops) == 0:
+            return []
+        for hop in hops:
+            x,y = self.rel2(pos, hop)
+            if not travelled[x][y]:
+                travelled[x][y] = True
+                self.traverse((x, y), travelled, helpers_add, helpers_rem, helpers_step)
+                travelled[x][y] = False
+
+    def helpers(self, magenta):
+        helpers_add = [[0] * 8 for i in range(8)]
+        helpers_rem = [[0] * 8 for i in range(8)]
+        helpers_step = [[[0] * 4 for i in range(8)] * 8 for i in range(8)]
+
+        for x in range(8):
+            for y in range(8):
+                piece = self.board.location((x, y)).occupant
+                if piece is not None and ((piece.color == MAGENTA) == magenta):
+                    travelled = [[False] * 8 for i in range(8)]
+                    travelled[x][y] = True
+                    self.traverse((x, y), travelled, helpers_add, helpers_rem, helpers_step)
+
+        return {'add': helpers_add, 'rem': helpers_rem, 'step': helpers_step}
 
 
 
 
 
-    def calculate_best_legal_hop(self, pos):
+
+
+    def calculate_best_legal_hop(self, pos, helpers):
         travelled = [[False] * 8 for i in range(8)]
         x,y = pos
         travelled[x][y] = True
-        return self.build_rec(pos, travelled)
+        return self.build_rec(pos, travelled, helpers)
 
     def turn_magenta(self):
         self.magenta = True
-        best = []
+        bestIsHop = False
+        bestHop = []
+        bestStepDir = None
         start = None
         best_score = None
+        helpers = self.helpers(self.magenta)
         for x in range(8):
             for y in range(8):
                 piece = self.board.location((x, y)).occupant
                 if piece is not None and piece.color == MAGENTA:
-                    moves = self.board.legal_moves((x, y))
-                    if len(moves) > 0:
-                        current = self.calculate_best_legal_hop((x, y))
-                        score = self.evaluate((x, y), current)
+                    current = self.calculate_best_legal_hop((x, y), helpers)
+                    score = self.evaluate((x, y), current, helpers)
+                    if score > 0 and (best_score is None or score > best_score):
+                        start = (x, y)
+                        bestIsHop = True
+                        bestHop = current
+                        best_score = score
+                        print("Overall Best score: ", score, " result: ", start, current)
+                    moves = self.legal_steps((x, y))
+                    for move in moves:
+                        score = self.evaluateStep((x, y), move, helpers)
                         if best_score is None or score > best_score:
-
                             start = (x, y)
-                            best = current
+                            bestIsHop = False
+                            bestStepDir = move
                             best_score = score
-                            print("Overall Best score: ", score, " result: ", start, current)
+                            print("Overall Best score is step: ", score, " result: ", start, move)
         if best_score > 0:
             piece = start
-            for hop in best:
-                dest = self.rel2(piece, hop)
-                print("AI: piece jump ", piece, ' dest ', dest)
-                self.board.move_piece(piece, dest)
-                piece = dest
-                self.graphics.screen.blit(self.graphics.background, (0, 0))
-                self.graphics.draw_board_pieces(self.board)
-                if self.graphics.message:
-                    self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
-                pygame.display.update()
-                pygame.time.delay(500)
-        else:
-
-            move = None
-            for x in range(8):
-                for y in range(8):
-                    piece = self.board.location((x, y)).occupant
-                    if piece is not None and piece.color == MAGENTA:
-                        moves = self.legal_steps((x, y))
-                        if len(moves) > 0:
-                            start = (x, y)
-                            move = moves[0]
-            if move is not None:
-                dest = self.rel(start, move)
+            if bestIsHop:
+                for hop in bestHop:
+                    dest = self.rel2(piece, hop)
+                    print("AI: piece jump ", piece, ' dest ', dest)
+                    self.board.move_piece(piece, dest)
+                    piece = dest
+                    self.graphics.screen.blit(self.graphics.background, (0, 0))
+                    self.graphics.draw_board_pieces(self.board)
+                    if self.graphics.message:
+                        self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
+                    pygame.display.update()
+                    pygame.time.delay(500)
+            else:
+                dest = self.rel(start, bestStepDir)
                 print("AI: piece step ", start, ' dest ', dest)
                 self.board.move_piece(start, dest)
                 self.graphics.screen.blit(self.graphics.background, (0, 0))
@@ -159,8 +277,9 @@ class Ai():
                 if self.graphics.message:
                     self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
                 pygame.display.update()
-            else:
-                print("Error, no AI MOVE FOUND")
+
+        else:
+            print("Error, no AI MOVE FOUND")
 
 
 

@@ -283,9 +283,9 @@ class Game:
 			self.perform_ai_turn()
 
 	def perform_ai_turn(self):
-		#print("self.turn", self.turn, ' ai m ', self.ai_magenta)
+		print("self.turn", self.turn, ' ai m ', self.ai_magenta)
 		if self.turn == MAGENTA and self.ai_magenta:
-			#print("running AI Magenta turn")
+			print("running AI Magenta turn")
 			self.ai.turn_magenta()
 			if self.post_check_for_endgame():
 				self.end = True
@@ -299,7 +299,7 @@ class Game:
 				self.end = True
 				self.graphics.draw_message("MAGENTA WINS!")
 				return
-		#print("self.turn", self.turn, ' ai g ', self.ai_green)
+		print("self.turn", self.turn, ' ai g ', self.ai_green)
 		if self.turn == GREEN and self.ai_green:
 			#print("running AI Green turn")
 			self.ai.turn_green()

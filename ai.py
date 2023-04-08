@@ -313,11 +313,55 @@ class Ai():
         travelled[x][y] = True
         return self.build_rec(pos, travelled, helpers, opponent_helpers)
 
+    def find_best_move_for_piece(self, pos, helpers, opponent_helpers):
+        best = None
+        bestIsHop = None
+        bestStepDir = None
+        current = []
+        piece = self.board.location(pos).occupant
+        if piece is not None and piece.color == MAGENTA:
+            current = self.calculate_best_legal_hop(pos, helpers, opponent_helpers)
+            best = self.evaluate(pos, current, helpers, opponent_helpers)
+            bestIsHop = True
+
+            moves = self.legal_steps(pos)
+            for move in moves:
+                score = self.evaluateStep(pos, move, helpers, opponent_helpers)
+                if best is None or score > best:
+                    bestIsHop = False
+                    bestStepDir = move
+                    best = score
+        print("Overall Best score is : ", best, current if bestIsHop else bestStepDir)
+        return [best, bestIsHop, current if bestIsHop else bestStepDir]
+
+    def show_moves(self, start, is_hop, moves):
+        piece = start
+        if is_hop:
+            for hop in moves:
+                dest = self.rel2(piece, hop)
+                print("AI: piece jump ", piece, ' dest ', dest)
+                self.board.move_piece(piece, dest)
+                piece = dest
+                self.graphics.screen.blit(self.graphics.background, (0, 0))
+                self.graphics.draw_board_pieces(self.board)
+                if self.graphics.message:
+                    self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
+                pygame.display.update()
+                pygame.time.delay(500)
+        else:
+            dest = self.rel(start, moves)
+            print("AI: piece step ", start, ' dest ', dest)
+            self.board.move_piece(start, dest)
+            self.graphics.screen.blit(self.graphics.background, (0, 0))
+            self.graphics.draw_board_pieces(self.board)
+            if self.graphics.message:
+                self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
+            pygame.display.update()
+
     def turn_magenta(self):
         self.magenta = True
-        bestIsHop = False
-        bestHop = []
-        bestStepDir = None
+        best_is_hop = False
+        best_move = None
         start = None
         best_score = None
 
@@ -329,53 +373,29 @@ class Ai():
 
         self.print_h(opponent_helpers['add'])
         self.print_hr(opponent_helpers['rem'])
-        for x in range(8):
-            for y in range(8):
-                piece = self.board.location((x, y)).occupant
-                if piece is not None and piece.color == MAGENTA:
-                    current = self.calculate_best_legal_hop((x, y), helpers, opponent_helpers)
-                    score = self.evaluate((x, y), current, helpers, opponent_helpers)
-                    if score > 0 and (best_score is None or score > best_score):
-                        start = (x, y)
-                        bestIsHop = True
-                        bestHop = current
-                        best_score = score
-                        print("Overall Best score: ", score, " result: ", start, current)
-                    moves = self.legal_steps((x, y))
-                    for move in moves:
-                        score = self.evaluateStep((x, y), move, helpers, opponent_helpers)
-                        if best_score is None or score > best_score:
-                            start = (x, y)
-                            bestIsHop = False
-                            bestStepDir = move
-                            best_score = score
-                            print("Overall Best score is step: ", score, " result: ", start, move)
-        if best_score > 0:
-            piece = start
-            if bestIsHop:
-                for hop in bestHop:
-                    dest = self.rel2(piece, hop)
-                    print("AI: piece jump ", piece, ' dest ', dest)
-                    self.board.move_piece(piece, dest)
-                    piece = dest
-                    self.graphics.screen.blit(self.graphics.background, (0, 0))
-                    self.graphics.draw_board_pieces(self.board)
-                    if self.graphics.message:
-                        self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
-                    pygame.display.update()
-                    pygame.time.delay(500)
-            else:
-                dest = self.rel(start, bestStepDir)
-                print("AI: piece step ", start, ' dest ', dest)
-                self.board.move_piece(start, dest)
-                self.graphics.screen.blit(self.graphics.background, (0, 0))
-                self.graphics.draw_board_pieces(self.board)
-                if self.graphics.message:
-                    self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
-                pygame.display.update()
-
+        for x in range(4, 8):
+            for y in range(4):
+                score, is_hop, moves = self.find_best_move_for_piece((x, y), helpers, opponent_helpers)
+                if score is not None and score > 0 and (best_score is None or score > best_score):
+                    start = (x, y)
+                    best_is_hop = is_hop
+                    best_move = moves
+                    best_score = score
+                    print("Overall Best score: ", score, " result: ", start, moves)
+        if best_score is not None and best_score > 0:
+            self.show_moves(start, best_is_hop, best_move)
         else:
-            print("Error, no AI MOVE FOUND")
+            for x in range(8):
+                for y in range(8):
+                    score, is_hop, moves = self.find_best_move_for_piece((x, y), helpers, opponent_helpers)
+                    if score is not None and score > 0 and (best_score is None or score > best_score):
+                        start = (x, y)
+                        best_is_hop = is_hop
+                        best_move = moves
+                        best_score = score
+                        print("Overall Best score: ", score, " result: ", start, moves)
+            if best_score > 0:
+                self.show_moves(start, best_is_hop, best_move)
 
 
 

@@ -76,33 +76,52 @@ class Ai():
         x,y = pos
         return x >= 4 and (self.magenta == (y >= 4))
 
-    def distance(self, start, finish):
+    def manhetten(self, start, finish):
         sx, sy = start
         fx, fy = finish
-        return 7 + fx - sx + 2 * (fy - sy) * (1 if self.magenta else -1)
+        return max(0, 4 - max(abs(sy - fy), abs(sx - fx)))
+    def distance(self, start, finish):
+        """ not a distance anymore"""
+        sx, sy = start
+        fx, fy = finish
+        sign = 1 if self.magenta else -1
+        homestart = self.manhetten(start, (7, 0) if self.magenta else (7, 7))
+        homefinish = self.manhetten(finish, (7, 0) if self.magenta else (7, 7))
+        deststart = self.manhetten(finish, (7, 7) if self.magenta else (7, 0))
+        destfinish = self.manhetten(finish, (7, 7) if self.magenta else (7, 0))
+        return (fy - sy) * sign + homestart - homefinish + destfinish - deststart
 
     def evaluate(self, pos, path, helpers):
+        if len(path) == 0:
+            return 0
         start = pos
         end = pos
         for hop in path:
             end = self.rel2(end, hop)
 
+        print('evaluate hop pos', pos, ' path: ', path, ' end: ', end)
+
         bonus = 0
-        if self.at_dest(end):
+        """if self.at_dest(end):
             bonus += 60
         if self.at_home(start):
             bonus += 40
         if self.at_home(end):
-            bonus -= 60
+            bonus -= 60"""
 
         sx, sy = start
         ex, ey = end
 
-        bonus += 20 * helpers['add'][ex][ey]
+
+        score = 0
+        for item in helpers['add'][ex][ey]:
+            if item['pos'] != pos:
+                score += item['score']
+
+        bonus += 20 * score
         bonus += 20 * helpers['rem'][sx][sy]
 
-
-        return self.distance(start, end) + bonus if len(path) > 0 else 0
+        return self.distance(start, end) + bonus
 
     """if len(path) > 0:
         print("self.magenta", self.magenta, " m==y<4", (self.magenta == (start[1] < 4)), "start", start, "end", end,
@@ -124,8 +143,9 @@ class Ai():
         start = pos
         end = self.rel(pos, dir)
 
+        print('evaluateStep pos', pos, ' dir: ', dir)
         bonus = 0
-        if self.at_dest(end):
+        """if self.at_dest(end):
             print('giving +60 bonus for reaching destination')
             bonus += 60
         if self.at_home(start):
@@ -133,26 +153,39 @@ class Ai():
             bonus += 40
         if self.at_home(end):
             print('removing -60 bonus for staying or returning to home base')
-            bonus -= 60
+            bonus -= 60"""
 
         sx, sy = start
         ex, ey = end
 
-        print('Add helpers: ', helpers['add'][ex][ey]);
-        print('bonus for add helper: ', 20 * helpers['add'][ex][ey]);
+        score = 0
+        for item in helpers['add'][ex][ey]:
+            print('POS: ', pos, ' item.pos: ', item['pos'], ' score: ', item['score'])
+            if item['pos'] != pos:
+                score += item['score']
 
-        bonus += 20 * helpers['add'][ex][ey]
+        print('Add helpers: ', score)
+        print('bonus for add helper: ', 20 * score)
+
+        bonus += 20 * score
         print('Rem helpers: ', helpers['rem'][sx][sy]);
         print('bonus for rem helper: ', 20 * helpers['rem'][sx][sy]);
         bonus += 20 * helpers['rem'][sx][sy]
         print("Dir: ", dir, ' di: ', self.dirs().index(dir))
         print('step helpers: ', helpers['step'][sx][sy][self.dirs().index(dir)]);
-        print('bonus for step helper: ', 50 * helpers['step'][sx][sy][self.dirs().index(dir)]);
+        print('bonus for step helper: ', helpers['step'][sx][sy][self.dirs().index(dir)]);
 
-        bonus += 50 * helpers['step'][sx][sy][self.dirs().index(dir)]
+        bonus += helpers['step'][sx][sy][self.dirs().index(dir)]
 
         return self.distance(start, end) + bonus
 
+    def print_h(self, ha):
+        for i in range(8):
+            for j in range(8):
+                data = ha[i][j]
+                if len(data) > 0:
+                    for item in data:
+                        print("i: ", i, " j: ", j, " ", " it.p: ", item['pos'], " it.s: ", item['score'])
 
     def hopsHelpers(self, pos, helpers_add, helpers_rem, helpers_step):
         result = []
@@ -166,7 +199,8 @@ class Ai():
                     result.append(dir)
                 elif hop_piece is not None and step_piece is not None:
                     hx, hy = hop
-                    helpers_rem[hx][hy] += 1
+                    if self.distance(pos, hop) > 0:
+                        helpers_rem[hx][hy] += 1
                     if (hop_piece.color == MAGENTA) == self.magenta:
                         di = 0
                         for dir2 in self.steps(hop):
@@ -175,15 +209,16 @@ class Ai():
                             if hop2 != pos and self.board.on_board(hop2):
                                 step_piece2 = self.board.location(step2).occupant
                                 hop_piece2 = self.board.location(hop2).occupant
-                                if hop_piece2 is None and step_piece2 is None:
-                                    helpers_step[hx][hy][di] += 1
+                                if self.distance(pos, hop2) > 0:
+                                    if hop_piece2 is None and step_piece2 is None:
+                                        helpers_step[hx][hy][di] += 1
                             di += 1
 
                 elif hop_piece is None and step_piece is None:
+                    print('Hop Helpers; pos: ', pos, ' step: ', step, ' hop: ', hop, ' dist: ', self.distance(pos, hop))
                     sx, sy = step
-                    helpers_add[sx][sy] += 1
-
-
+                    if self.distance(pos, hop) > 0:
+                        helpers_add[sx][sy].append({'pos':pos,'score':1})
         return result
 
 
@@ -199,7 +234,7 @@ class Ai():
                 travelled[x][y] = False
 
     def helpers(self, magenta):
-        helpers_add = [[0] * 8 for i in range(8)]
+        helpers_add = [[[] for i in range(8)] for i in range(8)]
         helpers_rem = [[0] * 8 for i in range(8)]
         helpers_step = [[[0] * 4 for i in range(8)] * 8 for i in range(8)]
 
@@ -232,6 +267,10 @@ class Ai():
         bestStepDir = None
         start = None
         best_score = None
+
+        print('MAGENTA TURN AI')
+
+
         helpers = self.helpers(self.magenta)
         for x in range(8):
             for y in range(8):

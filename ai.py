@@ -5,6 +5,7 @@ class Ai():
         self.graphics = graphics
         self.board = board
         self.magenta = False
+        self.opponent_help_anti_bonus = -60
 
     def dirs(self):
         return [NORTH, EAST, SOUTH, WEST]
@@ -60,7 +61,7 @@ class Ai():
                 travelled[x][y] = False
                 score = self.evaluate(pos, current_result, helpers, opponent_helpers)
                 if best_score is None:
-                    print("Best score: ", score, " result: ", pos, current_result)
+                    #print("Best score: ", score, " result: ", pos, current_result)
                     best_score = score
                     best_result = current_result
 
@@ -68,7 +69,7 @@ class Ai():
 
     def at_home(self, pos):
         x,y = pos
-        #print("x >= 4", (x >= 4), "self.magenta", self.magenta, "y < 4", y < 4, " m==y<4", (self.magenta == (y < 4)))
+        ##print("x >= 4", (x >= 4), "self.magenta", self.magenta, "y < 4", y < 4, " m==y<4", (self.magenta == (y < 4)))
 
         return x >= 4 and (self.magenta == (y < 4))
 
@@ -81,26 +82,27 @@ class Ai():
         fx, fy = finish
         return max(0, 4 - max(abs(sy - fy), abs(sx - fx)))
 
-    def worth_moving(self, start, finish, magenta):
+    def worth_moving(self, start, finish, opponent):
         sx, sy = start
         fx, fy = finish
-        sign = 1 if magenta else -1
-        homestart = self.manhetten(start, (7, 0) if magenta else (7, 7))
-        homefinish = self.manhetten(finish, (7, 0) if magenta else (7, 7))
-        deststart = self.manhetten(finish, (7, 7) if magenta else (7, 0))
-        destfinish = self.manhetten(finish, (7, 7) if magenta else (7, 0))
+        val = self.magenta != opponent
+        sign = 1 if val else -1
+        homestart = self.manhetten(start, (7, 0) if val else (7, 7))
+        homefinish = self.manhetten(finish, (7, 0) if val else (7, 7))
+        deststart = self.manhetten(finish, (7, 7) if val else (7, 0))
+        destfinish = self.manhetten(finish, (7, 7) if val else (7, 0))
         return (fy - sy) * sign + homestart - homefinish + destfinish - deststart
 
-    def distance(self, start, finish):
-        """ not a distance anymore"""
-        sx, sy = start
-        fx, fy = finish
-        sign = 1 if self.magenta else -1
-        homestart = self.manhetten(start, (7, 0) if self.magenta else (7, 7))
-        homefinish = self.manhetten(finish, (7, 0) if self.magenta else (7, 7))
-        deststart = self.manhetten(finish, (7, 7) if self.magenta else (7, 0))
-        destfinish = self.manhetten(finish, (7, 7) if self.magenta else (7, 0))
-        return (fy - sy) * sign + homestart - homefinish + destfinish - deststart
+    # def distance(self, start, finish):
+    #     """ not a distance anymore"""
+    #     sx, sy = start
+    #     fx, fy = finish
+    #     sign = 1 if self.magenta else -1
+    #     homestart = self.manhetten(start, (7, 0) if self.magenta else (7, 7))
+    #     homefinish = self.manhetten(finish, (7, 0) if self.magenta else (7, 7))
+    #     deststart = self.manhetten(finish, (7, 7) if self.magenta else (7, 0))
+    #     destfinish = self.manhetten(finish, (7, 7) if self.magenta else (7, 0))
+    #     return (fy - sy) * sign + homestart - homefinish + destfinish - deststart
 
     def evaluate(self, pos, path, helpers, opponent_helpers):
         if len(path) == 0:
@@ -110,7 +112,7 @@ class Ai():
         for hop in path:
             end = self.rel2(end, hop)
 
-        print('evaluate hop pos', pos, ' path: ', path, ' end: ', end)
+        #print('evaluate hop pos', pos, ' path: ', path, ' end: ', end)
 
         bonus = 0
         """if self.at_dest(end):
@@ -126,30 +128,32 @@ class Ai():
 
         score = 0
         for item in helpers['add'][ex][ey]:
-            if item['pos'] != pos:
-                score += item['score']
+            p, s, d, w = item
+            if p != pos:
+                score += s
 
-        print('Add helpers: ', score)
-        print('bonus for add helper: ', 20 * score)
-        print('Rem helpers: ', helpers['rem'][sx][sy]);
-        print('bonus for rem helper: ', 20 * helpers['rem'][sx][sy]);
+        #print('Add helpers: ', score)
+        #print('bonus for add helper: ', 20 * score)
+        #print('Rem helpers: ', helpers['rem'][sx][sy]);
+        #print('bonus for rem helper: ', 20 * helpers['rem'][sx][sy]);
         bonus += 20 * score
         bonus += 20 * helpers['rem'][sx][sy]
 
         score = 0
         for item in opponent_helpers['add'][ex][ey]:
-            score += item['score']
-        print('Opponent Add helpers: ', score)
-        print('negative bonus for opp add helper: ', 20 * score)
-        print('Opponent Rem helpers: ', opponent_helpers['rem'][sx][sy]);
-        print('negative bonus for opp rem helper: ', 20 * opponent_helpers['rem'][sx][sy]);
-        bonus -= 20 * score
-        bonus -= 20 * opponent_helpers['rem'][sx][sy]
+            p, s, d, w = item
+            score += s
+        #print('Opponent Add helpers: ', score)
+        #print('negative bonus for opp add helper: ', 20 * score)
+        #print('Opponent Rem helpers: ', opponent_helpers['rem'][sx][sy]);
+        #print('negative bonus for opp rem helper: ', 20 * opponent_helpers['rem'][sx][sy]);
+        bonus += self.opponent_help_anti_bonus * score
+        bonus += self.opponent_help_anti_bonus * opponent_helpers['rem'][sx][sy]
 
-        return self.distance(start, end) + bonus
+        return self.worth_moving(start, end, False) + bonus
 
     """if len(path) > 0:
-        print("self.magenta", self.magenta, " m==y<4", (self.magenta == (start[1] < 4)), "start", start, "end", end,
+        #print("self.magenta", self.magenta, " m==y<4", (self.magenta == (start[1] < 4)), "start", start, "end", end,
               "ah?s ", self.at_home(start), " ad?e", self.at_dest(end), " ah?e ", self.at_home(end))
     if self.at_home(start) and self.at_dest(end):
         return 100 * len(path)
@@ -168,16 +172,16 @@ class Ai():
         start = pos
         end = self.rel(pos, dir)
 
-        print('evaluateStep pos', pos, ' dir: ', dir)
+        #print('evaluateStep pos', pos, ' dir: ', dir)
         bonus = 0
         """if self.at_dest(end):
-            print('giving +60 bonus for reaching destination')
+            #print('giving +60 bonus for reaching destination')
             bonus += 60
         if self.at_home(start):
-            print('giving +40 bonus for leaving home base')
+            #print('giving +40 bonus for leaving home base')
             bonus += 40
         if self.at_home(end):
-            print('removing -60 bonus for staying or returning to home base')
+            #print('removing -60 bonus for staying or returning to home base')
             bonus -= 60"""
 
         sx, sy = start
@@ -185,110 +189,125 @@ class Ai():
 
         score = 0
         for item in helpers['add'][ex][ey]:
-            print('POS: ', pos, ' item.pos: ', item['pos'], ' score: ', item['score'])
-            if item['pos'] != pos:
-                score += item['score']
+            p, s, d, w = item
+            #print('POS: ', pos, ' item.pos: ', item['pos'], ' score: ', item['score'])
+            if p != pos:
+                score += s
 
-        print('Add helpers: ', score)
-        print('bonus for add helper: ', 20 * score)
+        #print('Add helpers: ', score)
+        #print('bonus for add helper: ', 20 * score)
 
         bonus += 20 * score
-        print('Rem helpers: ', helpers['rem'][sx][sy]);
-        print('bonus for rem helper: ', 20 * helpers['rem'][sx][sy]);
+        #print('Rem helpers: ', helpers['rem'][sx][sy]);
+        #print('bonus for rem helper: ', 20 * helpers['rem'][sx][sy]);
         bonus += 20 * helpers['rem'][sx][sy]
-        print("Dir: ", dir, ' di: ', self.dirs().index(dir))
-        print('step helpers: ', helpers['step'][sx][sy][self.dirs().index(dir)]);
-        print('bonus for step helper: ', helpers['step'][sx][sy][self.dirs().index(dir)]);
+        #print("Dir: ", dir, ' di: ', self.dirs().index(dir))
+        #print('step helpers: ', helpers['step'][sx][sy][self.dirs().index(dir)]);
+        #print('bonus for step helper: ', helpers['step'][sx][sy][self.dirs().index(dir)]);
 
         bonus += helpers['step'][sx][sy][self.dirs().index(dir)]
 
         score = 0
         for item in opponent_helpers['add'][ex][ey]:
-            score += item['score']
+            p, s, d, w = item
+            score += s
 
-        print('Opponent Add helpers: ', score)
-        print('negative bonus for opp add helper: ', 20 * score)
+        ##print('Opponent Add helpers: ', score)
+        ##print('negative bonus for opp add helper: ', 20 * score)
 
-        bonus -= 60 * score
-        print('Opponent Rem helpers: ', opponent_helpers['rem'][sx][sy]);
-        print('negative bonus for opp rem helper: ', 20 * opponent_helpers['rem'][sx][sy]);
+        bonus += self.opponent_help_anti_bonus * score
+        ##print('Opponent Rem helpers: ', opponent_helpers['rem'][sx][sy]);
+        ##print('negative bonus for opp rem helper: ', 20 * opponent_helpers['rem'][sx][sy]);
 
-        bonus -= 60 * opponent_helpers['rem'][sx][sy]
+        bonus += self.opponent_help_anti_bonus * opponent_helpers['rem'][sx][sy]
 
-        return self.distance(start, end) + bonus
+        return self.worth_moving(start, end, False) + bonus
 
+    def d(self, dir):
+        return 'N' if dir == NORTH else 'E' if dir == EAST else 'W' if dir == WEST else 'S'
     def print_h(self, ha):
-        for i in range(8):
-            for j in range(8):
-                data = ha[i][j]
-                if len(data) > 0:
-                    for item in data:
-                        print("i: ", i, " j: ", j, " ", " it.p: ", item['pos'], " it.s: ", item['score'])
-    def print_hr(self, hr):
-        for i in range(8):
-            for j in range(8):
-                if hr[i][j] > 0:
-                    print("i: ", i, " j: ", j, " ", " hr: ", hr[i][j])
+        for j in range(8):
+            x = ''
+            for i in range(8):
+                items = ha[i][j]
+                if len(items) == 0:
+                    x += '- '
 
-    def hopsHelpers(self, pos, travelled, helpers_add, helpers_rem, helpers_step, magenta):
+                x += ' |'
+                for item in ha[i][j]:
+                    p, s, d, w = item
+                    x += str(s) + self.d(d) + str(w) + ' '
+                x += '| '
+            print(x)
+    def print_hr(self, hr):
+        for j in range(8):
+            x = ''
+            for i in range(8):
+                x += str(hr[i][j]) + ' '
+                #if hr[i][j] > 0:
+                #    print("i: ", i, " j: ", j, " ", " hr: ", hr[i][j])
+            print(x)
+
+    def hopsHelpers(self, pos, travelled, helpers_add, helpers_rem, helpers_step, opponent):
         result = []
         potential_blockers_to_remove = []
         for dir in self.steps(pos):
             step = self.rel(pos, dir)
             hop = self.rel2(pos, dir)
             hx, hy = hop
-            print('pos: ', pos, ' hop: ', hop, ' dir ', dir, 'on board? ', self.board.on_board(hop))
-            if self.board.on_board(hop):
-                print(' tr? ', travelled[hx][hy])
+            #print('pos: ', pos, ' hop: ', hop, ' dir ', dir, 'on board? ', self.board.on_board(hop))
+            #if self.board.on_board(hop):
+                #print(' tr? ', travelled[hx][hy])
             if self.board.on_board(hop) and not travelled[hx][hy]:
                 step_piece = self.board.location(step).occupant
                 hop_piece = self.board.location(hop).occupant
-                print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' sp ', step_piece)
+                #print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' sp ', step_piece)
 
                 if hop_piece is None and step_piece is not None:
-                    print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' adding result, before ', result)
+                    #print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' adding result, before ', result)
                     result.append(dir)
-                    print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' adding result, after ', result)
+                    #print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' adding result, after ', result)
 
                 elif hop_piece is not None and step_piece is not None:
 
-                    print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' worth_moving ', self.worth_moving(pos, hop, magenta))
+                    #print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' worth_moving ', self.worth_moving(pos, hop, magenta))
 
-                    if self.worth_moving(pos, hop, magenta) > 0:
-                        print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' potential_blockers_to_remove before ', potential_blockers_to_remove)
+                    if self.worth_moving(pos, hop, opponent) > 0:
+                        #print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' potential_blockers_to_remove before ', potential_blockers_to_remove)
                         potential_blockers_to_remove.append(hop)
-                        print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' potential_blockers_to_remove after ',
-                              potential_blockers_to_remove)
+                        #print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' potential_blockers_to_remove after ', potential_blockers_to_remove)
 
                         #helpers_rem[hx][hy] += 1
-                    if (hop_piece.color == MAGENTA) == self.magenta:
-                        di = 0
-                        for dir2 in self.steps(hop):
-                            step2 = self.rel(hop, dir2)
-                            hop2 = self.rel2(hop, dir2)
-                            if hop2 != pos and self.board.on_board(hop2):
-                                step_piece2 = self.board.location(step2).occupant
-                                hop_piece2 = self.board.location(hop2).occupant
-                                if self.distance(pos, hop2) > 0:
-                                    if hop_piece2 is None and step_piece2 is None:
-                                        helpers_step[hx][hy][di] += 1
-                            di += 1
+                    # if (hop_piece.color == MAGENTA) == self.magenta:
+                    #     di = 0
+                    #     for dir2 in self.steps(hop):
+                    #         step2 = self.rel(hop, dir2)
+                    #         hop2 = self.rel2(hop, dir2)
+                    #         if hop2 != pos and self.board.on_board(hop2):
+                    #             step_piece2 = self.board.location(step2).occupant
+                    #             hop_piece2 = self.board.location(hop2).occupant
+                    #             if self.distance(pos, hop2) > 0:
+                    #                 if hop_piece2 is None and step_piece2 is None:
+                    #                     helpers_step[hx][hy][di] += 1
+                    #         di += 1
 
                 elif hop_piece is None and step_piece is None:
-                    print('Hop Helpers; pos: ', pos, ' step: ', step, ' hop: ', hop, ' dist: ', self.distance(pos, hop))
+                    #print('Hop Helpers; pos: ', pos, ' step: ', step, ' hop: ', hop, ' dist: ', self.distance(pos, hop))
                     sx, sy = step
-                    if self.distance(pos, hop) > 0:
-                        helpers_add[sx][sy].append({'pos':pos,'score':1})
+                    w = self.worth_moving(pos, hop, opponent)
+                    #print('Hop Helpers; pos: ', pos, ' step: ', step, ' hop: ', hop, ' w: ', w)
+                    if w > 0:
+                        helpers_add[sx][sy].append([pos, 1, dir, w])
 
         return [result, potential_blockers_to_remove]
 
 
-    def traverse(self, pos, path, travelled, helpers_add, helpers_rem, helpers_step, magenta):
-        print('Helpers Traverse Enter. m: ', magenta, ' pos ', pos, ' tr ', travelled)
-        hops, blockers = self.hopsHelpers(pos, travelled, helpers_add, helpers_rem, helpers_step, magenta)
+    def traverse(self, pos, path, travelled, helpers_add, helpers_rem, helpers_step, opponent):
+        #print('Helpers Traverse Enter. m: ', magenta, ' pos ', pos, ' tr ', travelled)
+        hops, blockers = self.hopsHelpers(pos, travelled, helpers_add, helpers_rem, helpers_step, opponent)
         if len(hops) == 0:
             return [[path, blockers]]
-        results = []
+        results = [[path, blockers]] if opponent else []
         for hop in hops:
             x,y = self.rel2(pos, hop)
             if not travelled[x][y]:
@@ -296,11 +315,11 @@ class Ai():
                 start, way = path
                 way = way.copy()
                 way.append(hop)
-                results += self.traverse((x, y), [start, way], travelled, helpers_add, helpers_rem, helpers_step, magenta)
+                results += self.traverse((x, y), [start, way], travelled, helpers_add, helpers_rem, helpers_step, opponent)
                 travelled[x][y] = False
         return results
 
-    def helpers(self, magenta):
+    def helpers(self, opponent):
         helpers_add = [[[] for i in range(8)] for i in range(8)]
         helpers_rem = [[0] * 8 for i in range(8)]
         helpers_step = [[[0] * 4 for i in range(8)] * 8 for i in range(8)]
@@ -308,23 +327,24 @@ class Ai():
         for x in range(8):
             for y in range(8):
                 piece = self.board.location((x, y)).occupant
-                if piece is not None and ((piece.color == MAGENTA) == magenta):
-                    print('Helpers Traverse start. m: ', magenta, ' pc ', piece.color, ' x y ', x, y)
+                if piece is not None and (((piece.color == MAGENTA) == self.magenta) != opponent):
+                    #print('Helpers Traverse start. m: ', magenta, ' pc ', piece.color, ' x y ', x, y)
                     travelled = [[False] * 8 for i in range(8)]
                     travelled[x][y] = True
                     path = [(x, y), []]
-                    results = self.traverse((x, y), path, travelled, helpers_add, helpers_rem, helpers_step, magenta)
+                    results = self.traverse((x, y), path, travelled, helpers_add, helpers_rem, helpers_step, opponent)
                     for result in results:
                         p, b = result
-                        print('path: ', p, ' blockers: ', b)
-                    if len(results) == 1:
-                        p, b = results[0]
-                        s, w = p
+                        #print('path: ', p, ' blockers: ', b)
+                    if len(results) == 1 or opponent:
+                        for result in results:
+                            p, b = result
+                            s, w = p
 
-                        for hop in b:
-                            hx, hy = hop
-                            print('s: ', s, ' hop: ', hop, ' adding to rem helper since len(results) = 1 ', len(results))
-                            helpers_rem[hx][hy] += 1
+                            for hop in b:
+                                hx, hy = hop
+                                #print('s: ', s, ' hop: ', hop, ' adding to rem helper since len(results) = 1 ', len(results))
+                                helpers_rem[hx][hy] += 1
 
         return {'add': helpers_add, 'rem': helpers_rem, 'step': helpers_step}
 
@@ -358,7 +378,7 @@ class Ai():
                     bestIsHop = False
                     bestStepDir = move
                     best = score
-        print("Overall Best score is : ", best, current if bestIsHop else bestStepDir)
+        #print("Overall Best score is : ", best, current if bestIsHop else bestStepDir)
         return [best, bestIsHop, current if bestIsHop else bestStepDir]
 
     def show_moves(self, start, is_hop, moves):
@@ -366,7 +386,7 @@ class Ai():
         if is_hop:
             for hop in moves:
                 dest = self.rel2(piece, hop)
-                print("AI: piece jump ", piece, ' dest ', dest)
+                #print("AI: piece jump ", piece, ' dest ', dest)
                 self.board.move_piece(piece, dest)
                 piece = dest
                 self.graphics.screen.blit(self.graphics.background, (0, 0))
@@ -377,7 +397,7 @@ class Ai():
                 pygame.time.delay(500)
         else:
             dest = self.rel(start, moves)
-            print("AI: piece step ", start, ' dest ', dest)
+            #print("AI: piece step ", start, ' dest ', dest)
             self.board.move_piece(start, dest)
             self.graphics.screen.blit(self.graphics.background, (0, 0))
             self.graphics.draw_board_pieces(self.board)
@@ -392,12 +412,13 @@ class Ai():
         start = None
         best_score = None
 
-        print('MAGENTA TURN AI')
+        #print('MAGENTA TURN AI')
 
 
-        helpers = self.helpers(self.magenta)
-        opponent_helpers = self.helpers(not self.magenta)
-
+        helpers = self.helpers(False)
+        opponent_helpers = self.helpers(True)
+        self.print_h(helpers['add'])
+        self.print_hr(helpers['rem'])
         self.print_h(opponent_helpers['add'])
         self.print_hr(opponent_helpers['rem'])
         for x in range(4, 8):
@@ -408,7 +429,7 @@ class Ai():
                     best_is_hop = is_hop
                     best_move = moves
                     best_score = score
-                    print("Overall Best score: ", score, " result: ", start, moves)
+                    #print("Overall Best score: ", score, " result: ", start, moves)
         if best_score is not None and best_score > 0:
             self.show_moves(start, best_is_hop, best_move)
         else:
@@ -420,7 +441,7 @@ class Ai():
                         best_is_hop = is_hop
                         best_move = moves
                         best_score = score
-                        print("Overall Best score: ", score, " result: ", start, moves)
+                        #print("Overall Best score: ", score, " result: ", start, moves)
             if best_score > 0:
                 self.show_moves(start, best_is_hop, best_move)
 
@@ -438,5 +459,5 @@ class Ai():
                 if piece != None and piece.color == GREEN:
                     pass
 
-        #print('turn green ai')
+        ##print('turn green ai')
         pass

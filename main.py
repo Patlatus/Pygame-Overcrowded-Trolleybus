@@ -47,9 +47,9 @@ class Game:
 
 		# Temporary settings to check how two AI can compete
 
-		# self.ai_green = True
-		# self.ai_magenta = True
-		# self.perform_ai_turn()
+		#self.ai_green = True
+		self.ai_magenta = True
+		self.perform_ai_turn()
 
 		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
 								  text_input="RESUME GAME", font=self.get_font(75), base_color="#d7fcd4",
@@ -101,10 +101,10 @@ class Game:
 			if event.type == QUIT:
 				self.terminate_game()
 
-			# if not self.is_human_turn() and not self.end:
-			# 	pygame.time.delay(1000)
-			# 	self.perform_ai_turn()
-			# 	pygame.time.delay(1000)
+			if not self.is_human_turn() and not self.end:
+				pygame.time.delay(1000)
+				self.perform_ai_turn()
+				pygame.time.delay(1000)
 
 			if not self.show_menu and event.type == self.TICK:
 				self.graphics.tick()
@@ -303,7 +303,7 @@ class Game:
 		print("self.turn", self.turn, ' ai m ', self.ai_magenta)
 		if self.turn == MAGENTA and self.ai_magenta:
 			print("running AI Magenta turn")
-			self.impoldai.turn_magenta(self.magenta)
+			self.ai.turn_magenta(self.magenta)
 			if self.post_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("GREEN WINS!")

@@ -303,9 +303,6 @@ class Game:
 			self.perform_ai_turn()
 
 	def perform_ai_turn(self):
-		if self.green == 50:
-			self.ai_green = False
-
 		print("self.turn", self.turn, ' ai m ', self.ai_magenta)
 		if self.turn == MAGENTA and self.ai_magenta:
 			print("running AI Magenta turn")

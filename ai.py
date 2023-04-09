@@ -2,6 +2,9 @@ import pygame
 from board import *
 class Ai():
     def __init__(self, graphics, board):
+        self.empty_middle = None
+        self.last_mode = None
+        self.last_line = None
         self.turn = 1
         self.graphics = graphics
         self.board = board
@@ -79,6 +82,9 @@ class Ai():
         x,y = pos
         return x >= 4 and (self.magenta == (y >= 4))
 
+    def manhatten(self, ax, ay, bx, by):
+        return abs(bx - ax) + abs(by - ay)
+
     def manhetten(self, start, finish):
         sx, sy = start
         fx, fy = finish
@@ -90,18 +96,26 @@ class Ai():
         sx, sy = start
         fx, fy = finish
         val = self.magenta != opponent
-        last_line = self.last_magenta_line() if val else self.last_green_line()
-        sign = 1 if fy < last_line else 0 if val else -1 if fy > last_line else 0
+        
+        em = self.empty_middle
+        
+        sign = 1 if val else -1
         horizontal_pull = fx - sx if (fy > 4) == val else 0
-        if self.print_wm:
-            print('wm: v ', val, ' fy ', fy, ' fy>4 ', (fy > 4), ' fy>4=val ', ((fy > 4) == val), ' hp ', horizontal_pull )
+        vertical_pull = (fy - sy) * sign if not self.last_mode else 0 #4 - abs(fy - empty_middle)
         homestart = self.manhetten(start, (7, 0) if val else (7, 7))
         homefinish = self.manhetten(finish, (7, 0) if val else (7, 7))
         deststart = self.manhetten(start, (7, 7) if val else (7, 0))
         destfinish = self.manhetten(finish, (7, 7) if val else (7, 0))
+        delta = self.manhatten(sx, sy, 4, em) - self.manhatten(fx, fy, 4, em)
+        pull = vertical_pull + horizontal_pull + delta if deststart == 0 else 0
+
         if self.print_wm:
-            print('wm: fy-sy ', (fy-sy), ' fy-sy * sign ', (fy - sy) * sign, ' hs ', homestart, ' hf ', -homefinish, ' df ', destfinish, ' ds ', deststart)
-        return (fy - sy) * sign + horizontal_pull + self.turn * (homestart - homefinish) + destfinish - deststart
+            print(
+                'wm: vp ', vertical_pull, ' hp ', horizontal_pull, ' hs-hf ', (homestart - homefinish), ' d ', delta,
+                ' df-ds ',  destfinish - deststart, ' fy-sy ', (fy-sy), ' fy-sy * sign ', (fy - sy) * sign,
+                ' em ', em, ' fy - empty_middle ', fy - em, ' 4-|em| ', 4 - abs(fy - em),
+                ' hs ', homestart, ' hf ', -homefinish, ' df ', destfinish, ' ds ', deststart)
+        return pull + self.turn * (homestart - homefinish) + destfinish - deststart
 
     # def distance(self, start, finish):
     #     """ not a distance anymore"""
@@ -156,7 +170,8 @@ class Ai():
 
         add_score = self.score(helpers['add'], ex, ey, pos)
 
-        bonus += 20 * add_score
+        if not self.last_mode:
+            bonus += 20 * add_score
 
         #print('Add helpers: ', score)
         #print('bonus for add helper: ', 20 * score)
@@ -172,11 +187,13 @@ class Ai():
         #print('negative bonus for opp add helper: ', 20 * score)
         #print('Opponent Rem helpers: ', opponent_helpers['rem'][sx][sy]);
         #print('negative bonus for opp rem helper: ', 20 * opponent_helpers['rem'][sx][sy]);
-        bonus += self.opponent_help_anti_bonus * opp_add_score
+        if not self.last_mode:
+            bonus += self.opponent_help_anti_bonus * opp_add_score
 
         opp_rem_score = self.score(opponent_helpers['rem'], sx, sy, end)
 
-        bonus += self.opponent_help_anti_bonus * opp_rem_score
+        if not self.last_mode:
+            bonus += self.opponent_help_anti_bonus * opp_rem_score
 
         e = self.worth_moving(start, end, False)
         fe = (20 + 25 * opponent_pieces) * e + bonus
@@ -221,8 +238,8 @@ class Ai():
 
         #print('Add helpers: ', score)
         #print('bonus for add helper: ', 20 * score)
-
-        bonus += 20 * add_score
+        if not self.last_mode:
+            bonus += 20 * add_score
         #print('Rem helpers: ', helpers['rem'][sx][sy]);
         #print('bonus for rem helper: ', 20 * helpers['rem'][sx][sy]);
         rem_score = self.score(helpers['rem'], sx, sy, end)
@@ -237,16 +254,17 @@ class Ai():
 
         ##print('Opponent Add helpers: ', score)
         ##print('negative bonus for opp add helper: ', 20 * score)
-
-        bonus += self.opponent_help_anti_bonus * opp_add_score
+        if not self.last_mode:
+            bonus += self.opponent_help_anti_bonus * opp_add_score
         ##print('Opponent Rem helpers: ', opponent_helpers['rem'][sx][sy]);
         ##print('negative bonus for opp rem helper: ', 20 * opponent_helpers['rem'][sx][sy]);
         opp_rem_score = self.score(opponent_helpers['rem'], sx, sy, end)
 
-        bonus += self.opponent_help_anti_bonus * opp_rem_score
+        if not self.last_mode:
+            bonus += self.opponent_help_anti_bonus * opp_rem_score
 
         e = self.worth_moving(start, end, False)
-        fe = (10 + self.turn) * e + bonus
+        fe = 10 * e + bonus
         return [fe, e, self.turn, add_score, rem_score, opp_add_score, opp_rem_score]
 
 
@@ -461,13 +479,21 @@ class Ai():
 
         #print('MAGENTA TURN AI')
 
+        self.last_line = self.last_magenta_line() if self.magenta else self.last_green_line()
+        self.last_mode = self.last_line != -1 and self.last_line != 8
+        self.empty_middle = (4 + self.last_line - 1) >> 1 if self.magenta else (3 + self.last_line + 1) >> 1
 
         helpers = self.helpers(False)
         opponent_helpers = self.helpers(True)
+        print('SELF ADD')
         self.print_h(helpers['add'])
+        print('SELF REM')
         self.print_h(helpers['rem'])
+        print('OPP ADD')
         self.print_h(opponent_helpers['add'])
+        print('OPP REM')
         self.print_h(opponent_helpers['rem'])
+
 
 
         hops = helpers['hops']
@@ -503,7 +529,7 @@ class Ai():
                         f = self.rel(pos, move)
                         score, we, t, ads, rs, oas, ors = self.evaluateStep(pos, move, helpers, opponent_helpers)
                         print(
-                            'STEP S: ', pos, ' move: ', move, ' f: ', f, ' w: ', w, ' e: ', e, ' we ', we, ' t ', t,
+                            'STEP S: ', pos, ' move: ', move, ' f: ', f,   ' e: ', score, ' we ', we, ' t ', t,
                             ' as ', ads, ' rs ', rs, ' oas ', oas, ' ors ', ors
                         )
                         if best_score is None or score > best_score:

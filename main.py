@@ -47,7 +47,7 @@ class Game:
 
 		# Temporary settings to check how two AI can compete
 
-		#self.ai_green = True
+		self.ai_green = True
 		self.ai_magenta = True
 		self.perform_ai_turn()
 

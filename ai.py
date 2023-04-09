@@ -2,6 +2,7 @@ import pygame
 from board import *
 class Ai():
     def __init__(self, graphics, board):
+        self.turn = 1
         self.graphics = graphics
         self.board = board
         self.magenta = False
@@ -115,7 +116,13 @@ class Ai():
             return 0
         start = pos
         end = pos
+
+        color = MAGENTA if self.magenta else GREEN
+        opponent_pieces = 0
         for hop in path:
+            bridge = self.rel(end, hop)
+            if self.board.location(bridge).occupant.color != color:
+                opponent_pieces += 1
             end = self.rel2(end, hop)
 
         #print('evaluate hop pos', pos, ' path: ', path, ' end: ', end)
@@ -172,7 +179,7 @@ class Ai():
 
         bonus += self.opponent_help_anti_bonus * score
 
-        return 20 * self.worth_moving(start, end, False) + bonus
+        return (20 + opponent_pieces + self.turn) * self.worth_moving(start, end, False) + bonus
 
     """if len(path) > 0:
         #print("self.magenta", self.magenta, " m==y<4", (self.magenta == (start[1] < 4)), "start", start, "end", end,
@@ -253,7 +260,7 @@ class Ai():
                 score += s
         bonus += self.opponent_help_anti_bonus * score
 
-        return self.worth_moving(start, end, False) + bonus
+        return (10 + self.turn) * self.worth_moving(start, end, False) + bonus
 
     def d(self, dir):
         return 'N' if dir == NORTH else 'E' if dir == EAST else 'W' if dir == WEST else 'S'
@@ -395,7 +402,7 @@ class Ai():
         bestStepDir = None
         current = []
         piece = self.board.location(pos).occupant
-        if piece is not None and piece.color == MAGENTA:
+        if piece is not None and ((piece.color == MAGENTA) == self.magenta):
             current = self.calculate_best_legal_hop(pos, helpers, opponent_helpers)
             best = self.evaluate(pos, current, helpers, opponent_helpers)
             bestIsHop = True
@@ -436,6 +443,7 @@ class Ai():
 
     def turn_magenta(self, turn):
         self.magenta = True
+        self.turn = turn
         best_is_hop = False
         best_move = None
         start = None
@@ -451,6 +459,7 @@ class Ai():
         self.print_h(opponent_helpers['add'])
         self.print_h(opponent_helpers['rem'])
 
+
         hops = helpers['hops']
         for hop in hops:
             s, results = hop
@@ -462,17 +471,29 @@ class Ai():
                     w = self.worth_moving(s, f, False)
                     e = self.evaluate(s, p, helpers, opponent_helpers)
                     print('S: ', s, ' P: ', p, ' f: ', f, ' w: ', w, ' e: ', e)
+                    if best_score is None or e > best_score:
+                        start = s
+                        best_is_hop = True
+                        best_move = p
+                        best_score = e
+
+
         # for x in range(4, 8):
         #     for y in range(4):
         for x in range(8):
             for y in range(8):
-                score, is_hop, moves = self.find_best_move_for_piece((x, y), helpers, opponent_helpers)
-                if score is not None and score > 0 and (best_score is None or score > best_score):
-                    start = (x, y)
-                    best_is_hop = is_hop
-                    best_move = moves
-                    best_score = score
-                    #print("Overall Best score: ", score, " result: ", start, moves)
+                pos = (x, y)
+                piece = self.board.location(pos).occupant
+                if piece is not None and ((piece.color == MAGENTA) == self.magenta):
+                    moves = self.legal_steps(pos)
+                    for move in moves:
+                        score = self.evaluateStep(pos, move, helpers, opponent_helpers)
+                        if best_score is None or score > best_score:
+                            start = pos
+                            best_is_hop = False
+                            best_move = move
+                            best_score = score
+
         if best_score is not None and best_score > 0:
             self.show_moves(start, best_is_hop, best_move)
         # else:

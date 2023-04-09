@@ -44,6 +44,7 @@ class Game:
 		self.show_options = False
 		self.ai_green = False
 		self.ai_magenta = False
+		self.delay_ai = False
 
 		# Temporary settings to check how two AI can compete
 
@@ -102,9 +103,11 @@ class Game:
 				self.terminate_game()
 
 			if not self.is_human_turn() and not self.end:
-				pygame.time.delay(1000)
+				if self.delay_ai:
+					pygame.time.delay(1000)
 				self.perform_ai_turn()
-				pygame.time.delay(1000)
+				if self.delay_ai:
+					pygame.time.delay(1000)
 
 			if not self.show_menu and event.type == self.TICK:
 				self.graphics.tick()
@@ -300,6 +303,9 @@ class Game:
 			self.perform_ai_turn()
 
 	def perform_ai_turn(self):
+		if self.green == 50:
+			self.ai_green = False
+
 		print("self.turn", self.turn, ' ai m ', self.ai_magenta)
 		if self.turn == MAGENTA and self.ai_magenta:
 			print("running AI Magenta turn")

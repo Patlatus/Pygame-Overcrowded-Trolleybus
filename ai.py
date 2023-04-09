@@ -7,6 +7,7 @@ class Ai():
         self.board = board
         self.magenta = False
         self.opponent_help_anti_bonus = -60
+        self.print_wm = False
 
     def dirs(self):
         return [NORTH, EAST, SOUTH, WEST]
@@ -84,19 +85,23 @@ class Ai():
         return max(0, 4 - max(abs(sy - fy), abs(sx - fx)))
 
     def worth_moving(self, start, finish, opponent):
+        if self.turn > 50:
+            self.print_wm = True
         sx, sy = start
         fx, fy = finish
         val = self.magenta != opponent
         last_line = self.last_magenta_line() if val else self.last_green_line()
         sign = 1 if fy < last_line else 0 if val else -1 if fy > last_line else 0
         horizontal_pull = fx - sx if (fy > 4) == val else 0
-        print('wm: v ', val, ' fy ', fy, ' fy>4 ', (fy > 4), ' fy>4=val ', ((fy > 4) == val), ' hp ', horizontal_pull )
+        if self.print_wm:
+            print('wm: v ', val, ' fy ', fy, ' fy>4 ', (fy > 4), ' fy>4=val ', ((fy > 4) == val), ' hp ', horizontal_pull )
         homestart = self.manhetten(start, (7, 0) if val else (7, 7))
         homefinish = self.manhetten(finish, (7, 0) if val else (7, 7))
         deststart = self.manhetten(start, (7, 7) if val else (7, 0))
         destfinish = self.manhetten(finish, (7, 7) if val else (7, 0))
-        print('wm: fy-sy ', (fy-sy), ' fy-sy * sign ', (fy - sy) * sign, ' hs ', homestart, ' hf ', -homefinish, ' df ', destfinish, ' ds ', deststart)
-        return (fy - sy) * sign + horizontal_pull + homestart - homefinish + destfinish - deststart
+        if self.print_wm:
+            print('wm: fy-sy ', (fy-sy), ' fy-sy * sign ', (fy - sy) * sign, ' hs ', homestart, ' hf ', -homefinish, ' df ', destfinish, ' ds ', deststart)
+        return (fy - sy) * sign + horizontal_pull + self.turn * (homestart - homefinish) + destfinish - deststart
 
     # def distance(self, start, finish):
     #     """ not a distance anymore"""
@@ -174,7 +179,7 @@ class Ai():
         bonus += self.opponent_help_anti_bonus * opp_rem_score
 
         e = self.worth_moving(start, end, False)
-        fe = (20 + opponent_pieces + self.turn) * e + bonus
+        fe = (20 + 25 * opponent_pieces) * e + bonus
         return [fe, e, opponent_pieces, self.turn, add_score, rem_score, opp_add_score, opp_rem_score]
 
     """if len(path) > 0:

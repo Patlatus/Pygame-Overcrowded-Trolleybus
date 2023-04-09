@@ -209,11 +209,11 @@ class Ai():
         print('Opponent Add helpers: ', score)
         print('negative bonus for opp add helper: ', 20 * score)
 
-        bonus -= 20 * score
+        bonus -= 60 * score
         print('Opponent Rem helpers: ', opponent_helpers['rem'][sx][sy]);
         print('negative bonus for opp rem helper: ', 20 * opponent_helpers['rem'][sx][sy]);
 
-        bonus -= 20 * opponent_helpers['rem'][sx][sy]
+        bonus -= 60 * opponent_helpers['rem'][sx][sy]
 
         return self.distance(start, end) + bonus
 
@@ -230,22 +230,36 @@ class Ai():
                 if hr[i][j] > 0:
                     print("i: ", i, " j: ", j, " ", " hr: ", hr[i][j])
 
-    def hopsHelpers(self, pos, helpers_add, helpers_rem, helpers_step, magenta):
+    def hopsHelpers(self, pos, travelled, helpers_add, helpers_rem, helpers_step, magenta):
         result = []
         potential_blockers_to_remove = []
         for dir in self.steps(pos):
             step = self.rel(pos, dir)
             hop = self.rel2(pos, dir)
+            hx, hy = hop
+            print('pos: ', pos, ' hop: ', hop, ' dir ', dir, 'on board? ', self.board.on_board(hop))
             if self.board.on_board(hop):
+                print(' tr? ', travelled[hx][hy])
+            if self.board.on_board(hop) and not travelled[hx][hy]:
                 step_piece = self.board.location(step).occupant
                 hop_piece = self.board.location(hop).occupant
+                print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' sp ', step_piece)
+
                 if hop_piece is None and step_piece is not None:
+                    print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' adding result, before ', result)
                     result.append(dir)
+                    print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' adding result, after ', result)
+
                 elif hop_piece is not None and step_piece is not None:
-                    hx, hy = hop
+
+                    print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' worth_moving ', self.worth_moving(pos, hop, magenta))
 
                     if self.worth_moving(pos, hop, magenta) > 0:
+                        print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' potential_blockers_to_remove before ', potential_blockers_to_remove)
                         potential_blockers_to_remove.append(hop)
+                        print('pos: ', pos, ' hop: ', hop, ' hp ', hop_piece, ' potential_blockers_to_remove after ',
+                              potential_blockers_to_remove)
+
                         #helpers_rem[hx][hy] += 1
                     if (hop_piece.color == MAGENTA) == self.magenta:
                         di = 0
@@ -265,25 +279,26 @@ class Ai():
                     sx, sy = step
                     if self.distance(pos, hop) > 0:
                         helpers_add[sx][sy].append({'pos':pos,'score':1})
-        if len(result) == 0:
-            for hop in potential_blockers_to_remove:
-                hx, hy = hop
-                print('pos: ', pos, ' hop: ', hop, ' adding to rem helper since len(res) ', len(result))
-                helpers_rem[hx][hy] += 1
 
-        return result
+        return [result, potential_blockers_to_remove]
 
 
-    def traverse(self, pos, travelled, helpers_add, helpers_rem, helpers_step, magenta):
-        hops = self.hopsHelpers(pos, helpers_add, helpers_rem, helpers_step, magenta)
+    def traverse(self, pos, path, travelled, helpers_add, helpers_rem, helpers_step, magenta):
+        print('Helpers Traverse Enter. m: ', magenta, ' pos ', pos, ' tr ', travelled)
+        hops, blockers = self.hopsHelpers(pos, travelled, helpers_add, helpers_rem, helpers_step, magenta)
         if len(hops) == 0:
-            return []
+            return [[path, blockers]]
+        results = []
         for hop in hops:
             x,y = self.rel2(pos, hop)
             if not travelled[x][y]:
                 travelled[x][y] = True
-                self.traverse((x, y), travelled, helpers_add, helpers_rem, helpers_step, magenta)
+                start, way = path
+                way = way.copy()
+                way.append(hop)
+                results += self.traverse((x, y), [start, way], travelled, helpers_add, helpers_rem, helpers_step, magenta)
                 travelled[x][y] = False
+        return results
 
     def helpers(self, magenta):
         helpers_add = [[[] for i in range(8)] for i in range(8)]
@@ -297,7 +312,19 @@ class Ai():
                     print('Helpers Traverse start. m: ', magenta, ' pc ', piece.color, ' x y ', x, y)
                     travelled = [[False] * 8 for i in range(8)]
                     travelled[x][y] = True
-                    self.traverse((x, y), travelled, helpers_add, helpers_rem, helpers_step, magenta)
+                    path = [(x, y), []]
+                    results = self.traverse((x, y), path, travelled, helpers_add, helpers_rem, helpers_step, magenta)
+                    for result in results:
+                        p, b = result
+                        print('path: ', p, ' blockers: ', b)
+                    if len(results) == 1:
+                        p, b = results[0]
+                        s, w = p
+
+                        for hop in b:
+                            hx, hy = hop
+                            print('s: ', s, ' hop: ', hop, ' adding to rem helper since len(results) = 1 ', len(results))
+                            helpers_rem[hx][hy] += 1
 
         return {'add': helpers_add, 'rem': helpers_rem, 'step': helpers_step}
 
@@ -358,7 +385,7 @@ class Ai():
                 self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
             pygame.display.update()
 
-    def turn_magenta(self):
+    def turn_magenta(self, turn):
         self.magenta = True
         best_is_hop = False
         best_move = None

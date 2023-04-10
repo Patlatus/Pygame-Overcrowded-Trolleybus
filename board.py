@@ -6,8 +6,8 @@ from piece import Piece
 WHITE    = (255, 255, 255)
 GREEN    = (  0, 255,   0)
 MAGENTA  = (255,   0, 255)
-GREEN_DARK    = (  0, 243,   0)
-MAGENTA_DARK  = (243,   0, 243)
+GREEN_DARK    = (  0, 170,   0)
+MAGENTA_DARK  = (170,   0, 170)
 BLACK    = (  0,   0,   0)
 
 
@@ -75,16 +75,16 @@ class Board:
 
         >>> board = Board()
 
-        >>> board.rel(NORTH, (1,2))
+        >>> rel(NORTH, (1,2))
         (1,1)
 
-        >>> board.rel(SOUTH, (3,4))
+        >>> rel(SOUTH, (3,4))
         (3,5)
 
-        >>> board.rel(EAST, (3,6))
+        >>> rel(EAST, (3,6))
         (3,5)
 
-        >>> board.rel(WEST, (2,5))
+        >>> rel(WEST, (2,5))
         (1,5)
         """
         x, y = pixel

@@ -2,6 +2,7 @@ import pygame
 from board import *
 class OldAi():
     def __init__(self, graphics, board):
+        self.turn = None
         self.graphics = graphics
         self.board = board
         self.magenta = False
@@ -16,8 +17,9 @@ class OldAi():
         dx, dy = dir
         return x + dx * 2, y + dy * 2
 
-    def turn_green(self):
+    def turn_green(self, turn):
         self.magenta = False
+        self.turn = turn
         start, dest = self.find_green()
         self.board.move_piece(start, dest)
         self.graphics.screen.blit(self.graphics.background, (0, 0))
@@ -26,8 +28,9 @@ class OldAi():
             self.graphics.screen.blit(self.graphics.text_surface_obj, self.graphics.text_rect_obj)
         pygame.display.update()
 
-    def turn_magenta(self):
+    def turn_magenta(self, turn):
         self.magenta = True
+        self.turn = turn
         start, dest = self.find_magenta()
         self.board.move_piece(start, dest)
         self.graphics.screen.blit(self.graphics.background, (0, 0))

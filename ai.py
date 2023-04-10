@@ -368,10 +368,10 @@ class Ai:
 
         helpers = self.helpers(False)
         opponent_helpers = self.helpers(True)
-        print_h(helpers['add'])
-        print_h(helpers['rem'])
-        print_h(opponent_helpers['add'])
-        print_h(opponent_helpers['rem'])
+        # print_h(helpers['add'])
+        # print_h(helpers['rem'])
+        # print_h(opponent_helpers['add'])
+        # print_h(opponent_helpers['rem'])
 
         hops = helpers['hops']
         for hop in hops:

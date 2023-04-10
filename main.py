@@ -124,13 +124,11 @@ class Game:
 				if self.ai_starts.checkForInput(mouse_pos):
 					self.ai_green = True
 					self.ai_magenta = False
-					#print('ai green: ', self.ai_green, 'ai ai_magenta: ', self.ai_magenta, ' is human turn? ', self.is_human_turn())
 					if not self.is_human_turn():
 						self.perform_ai_turn()
 				if self.ai_strikes_back.checkForInput(mouse_pos):
 					self.ai_green = False
 					self.ai_magenta = True
-					#print('ai green: ', self.ai_green, 'ai ai_magenta: ', self.ai_magenta, ' is human turn? ', self.is_human_turn())
 					if not self.is_human_turn():
 						self.perform_ai_turn()
 
@@ -183,10 +181,6 @@ class Game:
 						self.end_turn()
 
 	def is_human_turn(self):
-		#print('self.turn: ', self.turn)
-
-		#print('!ai m && t = M: ', not self.ai_magenta and self.turn == MAGENTA, '!ai g && t = g: ', not self.ai_green and self.turn == GREEN)
-
 		return not self.ai_magenta and self.turn == MAGENTA or not self.ai_green and self.turn == GREEN
 
 	def display_main_menu(self):
@@ -194,8 +188,6 @@ class Game:
 
 		menu_text = self.get_font(100).render("MAIN MENU", True, "#b68f40")
 		menu_rect = menu_text.get_rect(center=(self.graphics.window_size >> 1, self.graphics.window_size // 6))
-
-		# pygame.image.load("assets/Play Rect.png")
 
 		self.graphics.screen.blit(menu_text, menu_rect)
 
@@ -303,7 +295,6 @@ class Game:
 	def perform_ai_turn(self):
 		print("self.turn", self.turn, ' ai m ', self.ai_magenta)
 		if self.turn == MAGENTA and self.ai_magenta:
-			print("running AI Magenta turn")
 			self.ai.turn_magenta(self.magenta)
 			#self.impoldai.turn_magenta(self.magenta)
 			if self.post_check_for_endgame():
@@ -320,7 +311,6 @@ class Game:
 				return
 			print("self.turn", self.turn, ' ai g ', self.ai_green)
 		elif self.turn == GREEN and self.ai_green:
-			#print("running AI Green turn")
 			#self.oldai.turn_green()
 			#self.impoldai.turn_green(self.green)
 			self.ai.turn_green(self.green)

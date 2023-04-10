@@ -102,26 +102,6 @@ class Ai:
                 result.append(dir)
         return result
 
-    """def build_rec(self, pos, travelled, helpers, opponent_helpers):
-        best_score = None
-        best_result = []
-        hops = self.hops(pos)
-        if len(hops) == 0:
-            return []
-        for hop in hops:
-            x, y = rel2(pos, hop)
-            if not travelled[x][y]:
-                travelled[x][y] = True
-                current_result = [hop]
-                current_result += self.build_rec((x, y), travelled, helpers, opponent_helpers)
-                travelled[x][y] = False
-                score = self.evaluate(pos, current_result, helpers, opponent_helpers)
-                if best_score is None:
-                    best_score = score
-                    best_result = current_result
-
-        return best_result"""
-
     def at_home(self, pos):
         x, y = pos
         return x >= 4 and (self.magenta == (y < 4))

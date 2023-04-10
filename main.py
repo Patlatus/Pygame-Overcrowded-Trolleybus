@@ -173,9 +173,11 @@ class Game:
 				elif self.selected_piece is not None and cell in self.board.legal_moves(self.selected_piece):
 					self.board.move_piece(self.selected_piece, cell)
 
-					if cell not in self.board.adjacent(self.selected_piece):
+					if cell not in adjacent(self.selected_piece):
 						self.hop = True
 						self.selected_piece = cell
+						if len(self.board.legal_moves(cell, self.hop)) == 0:
+							self.end_turn()
 					else:
 						self.end_turn()
 
@@ -183,6 +185,8 @@ class Game:
 				if self.selected_piece is not None and cell in self.board.legal_moves(self.selected_piece, self.hop):
 					self.board.move_piece(self.selected_piece, cell)
 					self.selected_piece = cell
+					if len(self.board.legal_moves(cell, self.hop)) == 0:
+						self.end_turn()
 				else:
 					self.end_turn()
 
@@ -217,29 +221,8 @@ class Game:
 				if self.show_menu:
 					self.process_menu(mouse_pos)
 				elif not self.end and self.is_human_turn():
-					cell = self.graphics.board_coords(mouse_pos)  # what square is the mouse in?
-					if self.board.on_board(cell):
-						if not self.hop:
-							if self.board.location(cell).occupant != None and self.board.location(cell).occupant.color == self.turn:
-								self.selected_piece = cell
+					self.process_human_turn(mouse_pos)
 
-							elif self.selected_piece != None and cell in self.board.legal_moves(self.selected_piece):
-
-								self.board.move_piece(self.selected_piece, cell)
-
-								if cell not in self.board.adjacent(self.selected_piece):
-									self.hop = True
-									self.selected_piece = cell
-
-								else:
-									self.end_turn()
-
-						elif self.hop == True:
-							if self.selected_piece != None and cell in self.board.legal_moves(self.selected_piece, self.hop):
-								self.board.move_piece(self.selected_piece, cell)
-								self.selected_piece = cell
-							else:
-								self.end_turn()
 			if self.show_menu:
 				if self.show_main_menu:
 					self.display_main_menu()
@@ -314,7 +297,7 @@ class Game:
 		self.turn = GREEN
 		self.selected_legal_moves = []
 		self.selected_piece = None
-		self.board.matrix = self.board.new_board()
+		self.board.matrix = new_board()
 		self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta))
 		self.graphics.update_display(self.board, self.selected_legal_moves, self.selected_piece)
 

@@ -75,16 +75,16 @@ class Board:
 
         >>> board = Board()
 
-        >>> board.rel(NORTH, (1,2))
+        >>> rel(NORTH, (1,2))
         (1,1)
 
-        >>> board.rel(SOUTH, (3,4))
+        >>> rel(SOUTH, (3,4))
         (3,5)
 
-        >>> board.rel(EAST, (3,6))
+        >>> rel(EAST, (3,6))
         (3,5)
 
-        >>> board.rel(WEST, (2,5))
+        >>> rel(WEST, (2,5))
         (1,5)
         """
         x, y = pixel

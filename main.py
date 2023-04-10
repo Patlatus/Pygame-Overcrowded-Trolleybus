@@ -110,18 +110,91 @@ class Game:
 
 	def get_font(self, size):
 		return pygame.font.SysFont("comicsans", 40)  # pygame.font.Font("assets/font.ttf", size)
-	
+
+	def process_main_menu(self, mouse_pos):
+		if self.play_button.checkForInput(mouse_pos):
+			self.show_main_menu = False
+			self.show_menu = False
+			if not self.is_human_turn():
+				self.perform_ai_turn()
+		if self.restart_button.checkForInput(mouse_pos):
+			self.restart()
+			self.show_main_menu = False
+			self.show_menu = False
+		if self.options_button.checkForInput(mouse_pos):
+			self.show_main_menu = False
+			self.show_options = True
+		if self.level_button.checkForInput(mouse_pos):
+			self.show_main_menu = False
+			self.show_level = True
+		if self.quit_button.checkForInput(mouse_pos):
+			self.terminate_game()
+
+	def process_options(self, mouse_pos):
+		if self.human_choice.checkForInput(mouse_pos):
+			self.ai_green = False
+			self.ai_magenta = False
+		if self.ai_starts.checkForInput(mouse_pos):
+			self.ai_green = True
+			self.ai_magenta = False
+		if self.ai_strikes_back.checkForInput(mouse_pos):
+			self.ai_green = False
+			self.ai_magenta = True
+		if self.options_back.checkForInput(mouse_pos):
+			self.show_options = False
+			self.show_main_menu = True
+
+	def process_level(self, mouse_pos):
+		if self.old_ai_choice.checkForInput(mouse_pos):
+			self.level = Level.OLD
+		if self.imp_old_ai_choice.checkForInput(mouse_pos):
+			self.level = Level.OLD_IMP
+		if self.new_ai_choice.checkForInput(mouse_pos):
+			self.level = Level.NEW
+		if self.level_back.checkForInput(mouse_pos):
+			self.show_level = False
+			self.show_main_menu = True
+
+	def process_menu(self, mouse_pos):
+		if self.show_main_menu:
+			self.process_main_menu(mouse_pos)
+		elif self.show_options:
+			self.process_options(mouse_pos)
+		elif self.show_level:
+			self.process_level(mouse_pos)
+
+	def process_human_turn(self, mouse_pos):
+		cell = self.graphics.board_coords(mouse_pos)  # what square is the mouse in?
+		if self.board.on_board(cell):
+			if not self.hop:
+				piece = self.board.location(cell).occupant
+				if piece is not None and piece.color == self.turn:
+					self.selected_piece = cell
+				elif self.selected_piece is not None and cell in self.board.legal_moves(self.selected_piece):
+					self.board.move_piece(self.selected_piece, cell)
+
+					if cell not in self.board.adjacent(self.selected_piece):
+						self.hop = True
+						self.selected_piece = cell
+					else:
+						self.end_turn()
+
+			elif self.hop:
+				if self.selected_piece is not None and cell in self.board.legal_moves(self.selected_piece, self.hop):
+					self.board.move_piece(self.selected_piece, cell)
+					self.selected_piece = cell
+				else:
+					self.end_turn()
+
 	def event_loop(self):
 		"""
 		The event loop. This is where events are triggered
 		(like a mouse click) and then effect the game state.
 		"""
-		self.mouse_pos = self.graphics.board_coords(pygame.mouse.get_pos()) # what square is the mouse in?
-		if self.selected_piece != None:
+		if self.selected_piece is not None:
 			self.selected_legal_moves = self.board.legal_moves(self.selected_piece, self.hop)
 
 		for event in pygame.event.get():
-
 			if event.type == QUIT:
 				self.terminate_game()
 
@@ -139,53 +212,34 @@ class Game:
 					if not self.is_human_turn():
 						self.perform_ai_turn()
 
-			if self.show_menu and event.type == pygame.MOUSEBUTTONDOWN:
+			if event.type == pygame.MOUSEBUTTONDOWN:
 				mouse_pos = pygame.mouse.get_pos()
+				if self.show_menu:
+					self.process_menu(mouse_pos)
+				elif not self.end and self.is_human_turn():
+					cell = self.graphics.board_coords(mouse_pos)  # what square is the mouse in?
+					if self.board.on_board(cell):
+						if not self.hop:
+							if self.board.location(cell).occupant != None and self.board.location(cell).occupant.color == self.turn:
+								self.selected_piece = cell
 
-				if self.show_options:
-					if self.human_choice.checkForInput(mouse_pos):
-						self.ai_green = False
-						self.ai_magenta = False
-					if self.ai_starts.checkForInput(mouse_pos):
-						self.ai_green = True
-						self.ai_magenta = False
+							elif self.selected_piece != None and cell in self.board.legal_moves(self.selected_piece):
 
-					if self.ai_strikes_back.checkForInput(mouse_pos):
-						self.ai_green = False
-						self.ai_magenta = True
-					if self.options_back.checkForInput(mouse_pos):
-						self.show_options = False
-						self.show_main_menu = True
-				elif self.show_main_menu:
-					if self.play_button.checkForInput(mouse_pos):
-						self.show_main_menu = False
-						self.show_menu = False
-						if not self.is_human_turn():
-							self.perform_ai_turn()
+								self.board.move_piece(self.selected_piece, cell)
 
-					if self.restart_button.checkForInput(mouse_pos):
-						self.restart()
-						self.show_main_menu = False
-						self.show_menu = False
-					if self.options_button.checkForInput(mouse_pos):
-						self.show_main_menu = False
-						self.show_options = True
-					if self.level_button.checkForInput(mouse_pos):
-						self.show_main_menu = False
-						self.show_level = True
-					if self.quit_button.checkForInput(mouse_pos):
-						self.terminate_game()
-				elif self.show_level:
-					if self.old_ai_choice.checkForInput(mouse_pos):
-						self.level = Level.OLD
-					if self.imp_old_ai_choice.checkForInput(mouse_pos):
-						self.level = Level.OLD_IMP
-					if self.new_ai_choice.checkForInput(mouse_pos):
-						self.level = Level.NEW
-					if self.level_back.checkForInput(mouse_pos):
-						self.show_level = False
-						self.show_main_menu = True
+								if cell not in self.board.adjacent(self.selected_piece):
+									self.hop = True
+									self.selected_piece = cell
 
+								else:
+									self.end_turn()
+
+						elif self.hop == True:
+							if self.selected_piece != None and cell in self.board.legal_moves(self.selected_piece, self.hop):
+								self.board.move_piece(self.selected_piece, cell)
+								self.selected_piece = cell
+							else:
+								self.end_turn()
 			if self.show_menu:
 				if self.show_main_menu:
 					self.display_main_menu()
@@ -193,29 +247,6 @@ class Game:
 					self.display_options()
 				elif self.show_level:
 					self.display_level()
-
-			elif not self.end and self.is_human_turn() and event.type == MOUSEBUTTONDOWN and self.board.on_board(self.mouse_pos):
-				if not self.hop:
-					if self.board.location(self.mouse_pos).occupant != None and self.board.location(self.mouse_pos).occupant.color == self.turn:
-						self.selected_piece = self.mouse_pos
-
-					elif self.selected_piece != None and self.mouse_pos in self.board.legal_moves(self.selected_piece):
-
-						self.board.move_piece(self.selected_piece, self.mouse_pos)
-					
-						if self.mouse_pos not in self.board.adjacent(self.selected_piece):
-							self.hop = True
-							self.selected_piece = self.mouse_pos
-
-						else:
-							self.end_turn()
-
-				elif self.hop == True:
-					if self.selected_piece != None and self.mouse_pos in self.board.legal_moves(self.selected_piece, self.hop):
-						self.board.move_piece(self.selected_piece, self.mouse_pos)
-						self.selected_piece = self.mouse_pos
-					else:
-						self.end_turn()
 
 	def is_human_turn(self):
 		return not self.ai_magenta and self.turn == MAGENTA or not self.ai_green and self.turn == GREEN

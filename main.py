@@ -5,7 +5,7 @@ Colors of the board cells and pieces were changed to match the original game imp
 """
 import pygame, sys
 from pygame.locals import *
-
+from enum import Enum
 from graphics import Graphics
 from board import *
 from button import Button
@@ -14,6 +14,13 @@ from old_ai import OldAi
 from improved_old_ai import ImprovedOldAi
 
 pygame.font.init()
+
+
+class Level(Enum):
+	OLD = 0
+	OLD_IMP = 1
+	NEW = 2
+
 
 class Game:
 	"""
@@ -31,6 +38,7 @@ class Game:
 		self.ai = Ai(self.graphics, self.board)
 		self.oldai = OldAi(self.graphics, self.board)
 		self.impoldai = ImprovedOldAi(self.graphics, self.board)
+		self.level = Level.NEW
 		
 		self.turn = GREEN
 		self.selected_piece = None # a board location. 
@@ -38,19 +46,16 @@ class Game:
 		self.selected_legal_moves = []
 
 		self.TICK = pygame.USEREVENT
+		self.AI_TICK = pygame.USEREVENT + 1
 		pygame.time.set_timer(self.TICK, 500)
+		pygame.time.set_timer(self.AI_TICK, 1200)
 		self.show_menu = False
 		self.show_main_menu = False
 		self.show_options = False
+		self.show_level = False
 		self.ai_green = False
 		self.ai_magenta = False
 		self.delay_ai = False
-
-		# Temporary settings to check how two AI can compete
-
-		self.ai_green = True
-		self.ai_magenta = True
-		self.perform_ai_turn()
 
 		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
 								  text_input="RESUME GAME", font=self.get_font(75), base_color="#d7fcd4",
@@ -62,8 +67,11 @@ class Game:
 		self.options_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 6),
 									 text_input="OPTIONS", font=self.get_font(75), base_color="#d7fcd4",
 									 hovering_color="White")
+		self.level_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
+									 text_input="AI Level", font=self.get_font(75), base_color="#d7fcd4",
+									 hovering_color="White")
 		# pygame.image.load("assets/Quit Rect.png")
-		self.quit_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
+		self.quit_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 6 // 6),
 								  text_input="QUIT", font=self.get_font(75), base_color="#d7fcd4",
 								  hovering_color="White")
 
@@ -80,6 +88,21 @@ class Game:
 		self.options_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
 							  text_input="BACK", font=self.get_font(75), base_color="#d7fcd4",
 							  hovering_color="White")
+
+		self.old_ai_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
+								   text_input="Old AI (2003): Primitive", font=self.get_font(75), base_color="#d7fcd4",
+								   hovering_color="White")
+		self.imp_old_ai_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
+								text_input="Improved Old AI: Easy", font=self.get_font(75), base_color="#d7fcd4",
+								hovering_color="White")
+		# pygame.image.load("assets/Options Rect.png")
+		self.new_ai_choice = Button(image=None,
+									  pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 6),
+									  text_input="New AI (2023): Medium", font=self.get_font(75), base_color="#d7fcd4",
+									  hovering_color="White")
+		self.level_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
+								   text_input="BACK", font=self.get_font(75), base_color="#d7fcd4",
+								   hovering_color="White")
 
 	def setup(self):
 		"""Draws the window and board at the beginning of the game"""
@@ -102,11 +125,10 @@ class Game:
 			if event.type == QUIT:
 				self.terminate_game()
 
-
-
 			if not self.show_menu and event.type == self.TICK:
 				self.graphics.tick()
 
+			if not self.show_menu and event.type == self.AI_TICK:
 				if not self.is_human_turn() and not self.end:
 					self.perform_ai_turn()
 
@@ -114,48 +136,63 @@ class Game:
 				if event.key == pygame.K_ESCAPE:
 					self.show_menu = not self.show_menu
 					self.show_main_menu = not self.show_options and self.show_menu
-
-			if self.show_menu and self.show_options and event.type == pygame.MOUSEBUTTONDOWN:
-				mouse_pos = pygame.mouse.get_pos()
-
-				if self.human_choice.checkForInput(mouse_pos):
-					self.ai_green = False
-					self.ai_magenta = False
-				if self.ai_starts.checkForInput(mouse_pos):
-					self.ai_green = True
-					self.ai_magenta = False
-					if not self.is_human_turn():
-						self.perform_ai_turn()
-				if self.ai_strikes_back.checkForInput(mouse_pos):
-					self.ai_green = False
-					self.ai_magenta = True
 					if not self.is_human_turn():
 						self.perform_ai_turn()
 
-				if self.options_back.checkForInput(mouse_pos):
-					self.show_options = False
-					self.show_main_menu = True
-
-			elif self.show_menu and self.show_main_menu and event.type == pygame.MOUSEBUTTONDOWN:
+			if self.show_menu and event.type == pygame.MOUSEBUTTONDOWN:
 				mouse_pos = pygame.mouse.get_pos()
-				if self.play_button.checkForInput(mouse_pos):
-					self.show_main_menu = False
-					self.show_menu = False
-				if self.restart_button.checkForInput(mouse_pos):
-					self.restart()
-					self.show_main_menu = False
-					self.show_menu = False
-				if self.options_button.checkForInput(mouse_pos):
-					self.show_main_menu = False
-					self.show_options = True
-				if self.quit_button.checkForInput(mouse_pos):
-					self.terminate_game()
+
+				if self.show_options:
+					if self.human_choice.checkForInput(mouse_pos):
+						self.ai_green = False
+						self.ai_magenta = False
+					if self.ai_starts.checkForInput(mouse_pos):
+						self.ai_green = True
+						self.ai_magenta = False
+
+					if self.ai_strikes_back.checkForInput(mouse_pos):
+						self.ai_green = False
+						self.ai_magenta = True
+					if self.options_back.checkForInput(mouse_pos):
+						self.show_options = False
+						self.show_main_menu = True
+				elif self.show_main_menu:
+					if self.play_button.checkForInput(mouse_pos):
+						self.show_main_menu = False
+						self.show_menu = False
+						if not self.is_human_turn():
+							self.perform_ai_turn()
+
+					if self.restart_button.checkForInput(mouse_pos):
+						self.restart()
+						self.show_main_menu = False
+						self.show_menu = False
+					if self.options_button.checkForInput(mouse_pos):
+						self.show_main_menu = False
+						self.show_options = True
+					if self.level_button.checkForInput(mouse_pos):
+						self.show_main_menu = False
+						self.show_level = True
+					if self.quit_button.checkForInput(mouse_pos):
+						self.terminate_game()
+				elif self.show_level:
+					if self.old_ai_choice.checkForInput(mouse_pos):
+						self.level = Level.OLD
+					if self.imp_old_ai_choice.checkForInput(mouse_pos):
+						self.level = Level.OLD_IMP
+					if self.new_ai_choice.checkForInput(mouse_pos):
+						self.level = Level.NEW
+					if self.level_back.checkForInput(mouse_pos):
+						self.show_level = False
+						self.show_main_menu = True
 
 			if self.show_menu:
 				if self.show_main_menu:
 					self.display_main_menu()
 				elif self.show_options:
 					self.display_options()
+				elif self.show_level:
+					self.display_level()
 
 			elif not self.end and self.is_human_turn() and event.type == MOUSEBUTTONDOWN and self.board.on_board(self.mouse_pos):
 				if not self.hop:
@@ -192,7 +229,7 @@ class Game:
 		self.graphics.screen.blit(menu_text, menu_rect)
 
 		mouse_pos = pygame.mouse.get_pos()
-		for button in [self.play_button, self.restart_button, self.options_button, self.quit_button]:
+		for button in [self.play_button, self.restart_button, self.options_button, self.level_button, self.quit_button]:
 			button.changeColor(mouse_pos)
 			button.update(self.graphics.screen)
 		pygame.display.update()
@@ -215,6 +252,28 @@ class Game:
 			button.update(self.graphics.screen)
 
 		pygame.display.update()
+
+	def display_level(self):
+		mouse_pos = pygame.mouse.get_pos()
+
+		self.graphics.screen.fill("black")
+
+		options_text = self.get_font(45).render("AI LEVEL OPTIONS", True, "#b68f40")
+		options_rect = options_text.get_rect(
+			center=(self.graphics.window_size >> 1, self.graphics.window_size // 6))
+		self.graphics.screen.blit(options_text, options_rect)
+
+		self.old_ai_choice.selected = self.level == Level.OLD
+		self.imp_old_ai_choice.selected = self.level == Level.OLD_IMP
+		self.new_ai_choice.selected = self.level == Level.NEW
+
+		for button in [self.old_ai_choice, self.imp_old_ai_choice, self.new_ai_choice, self.level_back]:
+			button.changeColor(mouse_pos)
+			button.update(self.graphics.screen)
+
+		pygame.display.update()
+
+
 
 	def restart(self):
 		self.end = False
@@ -292,11 +351,19 @@ class Game:
 		if not self.end:
 			self.perform_ai_turn()
 
+	def get_ai(self):
+		match self.level:
+			case Level.OLD:
+				return self.oldai
+			case Level.OLD_IMP:
+				return self.impoldai
+			case Level.NEW:
+				return self.ai
+
 	def perform_ai_turn(self):
 		print("self.turn", self.turn, ' ai m ', self.ai_magenta)
 		if self.turn == MAGENTA and self.ai_magenta:
-			self.ai.turn_magenta(self.magenta)
-			#self.impoldai.turn_magenta(self.magenta)
+			self.get_ai().turn_magenta(self.magenta)
 			if self.post_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("GREEN WINS!")
@@ -311,9 +378,7 @@ class Game:
 				return
 			print("self.turn", self.turn, ' ai g ', self.ai_green)
 		elif self.turn == GREEN and self.ai_green:
-			#self.oldai.turn_green()
-			#self.impoldai.turn_green(self.green)
-			self.ai.turn_green(self.green)
+			self.get_ai().turn_green(self.green)
 
 			if self.post_check_for_endgame():
 				self.end = True

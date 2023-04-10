@@ -115,7 +115,7 @@ class Game:
 		if self.play_button.checkForInput(mouse_pos):
 			self.show_main_menu = False
 			self.show_menu = False
-			if not self.is_human_turn():
+			if not self.is_human_turn() and not self.end:
 				self.perform_ai_turn()
 		if self.restart_button.checkForInput(mouse_pos):
 			self.restart()
@@ -212,8 +212,8 @@ class Game:
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
 					self.show_menu = not self.show_menu
-					self.show_main_menu = not self.show_options and self.show_menu
-					if not self.is_human_turn():
+					self.show_main_menu = not self.show_options and  not self.show_level and self.show_menu
+					if not self.is_human_turn() and not self.end:
 						self.perform_ai_turn()
 
 			if event.type == pygame.MOUSEBUTTONDOWN:

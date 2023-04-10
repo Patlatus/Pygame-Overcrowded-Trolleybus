@@ -102,15 +102,13 @@ class Game:
 			if event.type == QUIT:
 				self.terminate_game()
 
-			if not self.is_human_turn() and not self.end:
-				if self.delay_ai:
-					pygame.time.delay(1000)
-				self.perform_ai_turn()
-				if self.delay_ai:
-					pygame.time.delay(1000)
+
 
 			if not self.show_menu and event.type == self.TICK:
 				self.graphics.tick()
+
+				if not self.is_human_turn() and not self.end:
+					self.perform_ai_turn()
 
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
@@ -307,6 +305,7 @@ class Game:
 		if self.turn == MAGENTA and self.ai_magenta:
 			print("running AI Magenta turn")
 			self.ai.turn_magenta(self.magenta)
+			#self.impoldai.turn_magenta(self.magenta)
 			if self.post_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("GREEN WINS!")
@@ -319,13 +318,13 @@ class Game:
 				self.end = True
 				self.graphics.draw_message("MAGENTA WINS!")
 				return
-		print("self.turn", self.turn, ' ai g ', self.ai_green)
-		if self.turn == GREEN and self.ai_green:
+			print("self.turn", self.turn, ' ai g ', self.ai_green)
+		elif self.turn == GREEN and self.ai_green:
 			#print("running AI Green turn")
 			#self.oldai.turn_green()
-			self.impoldai.turn_green(self.green)
+			#self.impoldai.turn_green(self.green)
+			self.ai.turn_green(self.green)
 
-			#self.ai.turn_green()
 			if self.post_check_for_endgame():
 				self.end = True
 				self.graphics.draw_message("MAGENTA WINS!")

@@ -559,13 +559,83 @@ class Ai():
 
         pass
 
-    def turn_green(self):
+    def turn_green(self, turn):
         self.magenta = False
+        self.turn = turn
+        best_is_hop = False
+        best_move = None
+        start = None
+        best_score = None
+
+        self.last_line = self.last_magenta_line() if self.magenta else self.last_green_line()
+        self.last_mode = self.last_line != -1 and self.last_line != 8
+        self.empty_middle = (4 + self.last_line - 1) >> 1 if self.magenta else (3 + self.last_line + 1) >> 1
+
+        helpers = self.helpers(False)
+        opponent_helpers = self.helpers(True)
+        print('SELF ADD')
+        self.print_h(helpers['add'])
+        print('SELF REM')
+        self.print_h(helpers['rem'])
+        print('OPP ADD')
+        self.print_h(opponent_helpers['add'])
+        print('OPP REM')
+        self.print_h(opponent_helpers['rem'])
+
+        hops = helpers['hops']
+        for hop in hops:
+            s, results = hop
+            for result in results:
+                p, b = result
+                ss, p = p
+                if len(p) > 0:
+                    f = self.end(s, p)
+                    w = self.worth_moving(s, f, False)
+                    e, we, op, t, ads, rs, oas, ors = self.evaluate(s, p, helpers, opponent_helpers)
+                    print(
+                        'S: ', s, ' P: ', p, ' f: ', f, ' w: ', w, ' e: ', e, ' we ', we, ' op ', op, ' t ', t,
+                        ' as ', ads, ' rs ', rs, ' oas ', oas, ' ors ', ors
+                    )
+                    if best_score is None or e > best_score:
+                        start = s
+                        best_is_hop = True
+                        best_move = p
+                        best_score = e
+
+        # for x in range(4, 8):
+        #     for y in range(4):
         for x in range(8):
             for y in range(8):
-                piece = self.board.location((x, y)).occupant
-                if piece != None and piece.color == GREEN:
-                    pass
+                pos = (x, y)
+                piece = self.board.location(pos).occupant
+                #if piece != None and piece.color == GREEN:
+                if piece is not None and ((piece.color == MAGENTA) == self.magenta):
+                    moves = self.legal_steps(pos)
+                    for move in moves:
+                        f = self.rel(pos, move)
+                        score, we, t, ads, rs, oas, ors = self.evaluateStep(pos, move, helpers, opponent_helpers)
+                        print(
+                            'STEP S: ', pos, ' move: ', move, ' f: ', f, ' e: ', score, ' we ', we, ' t ', t,
+                            ' as ', ads, ' rs ', rs, ' oas ', oas, ' ors ', ors
+                        )
+                        if best_score is None or score > best_score:
+                            start = pos
+                            best_is_hop = False
+                            best_move = move
+                            best_score = score
 
-        ##print('turn green ai')
-        pass
+        if best_score is not None:
+            self.show_moves(start, best_is_hop, best_move)
+        # else:
+        #     for x in range(8):
+        #         for y in range(8):
+        #             score, is_hop, moves = self.find_best_move_for_piece((x, y), helpers, opponent_helpers)
+        #             if score is not None and score > 0 and (best_score is None or score > best_score):
+        #                 start = (x, y)
+        #                 best_is_hop = is_hop
+        #                 best_move = moves
+        #                 best_score = score
+        #                 #print("Overall Best score: ", score, " result: ", start, moves)
+        #     if best_score > 0:
+        #         self.show_moves(start, best_is_hop, best_move)
+

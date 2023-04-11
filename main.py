@@ -4,6 +4,7 @@ However, here a completely different game is built while still on chessboard.
 Colors of the board cells and pieces were changed to match the original game implemented in Delphi
 """
 import pygame, sys
+#import pygame_gui
 from pygame.locals import *
 from enum import Enum
 from graphics import Graphics
@@ -12,8 +13,17 @@ from button import Button
 from ai import Ai
 from old_ai import OldAi
 from improved_old_ai import ImprovedOldAi
+import gettext
 
 pygame.font.init()
+
+ua = gettext.translation('messages', localedir='locale', languages=['ua'])
+
+ua.install()
+
+_ = ua.gettext
+
+#_ = gettext.gettext
 
 
 class Level(Enum):
@@ -58,7 +68,7 @@ class Game:
 		self.delay_ai = False
 
 		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
-								  text_input="RESUME GAME", font=self.get_font(75), base_color="#d7fcd4",
+								  text_input=_("RESUME GAME"), font=self.get_font(75), base_color="#d7fcd4",
 								  hovering_color="White")
 		self.restart_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
 								  text_input="RESTART GAME", font=self.get_font(75), base_color="#d7fcd4",
@@ -103,6 +113,7 @@ class Game:
 		self.level_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
 								   text_input="BACK", font=self.get_font(75), base_color="#d7fcd4",
 								   hovering_color="White")
+		#self.manager = pygame_gui.UIManager((800, 600))
 
 	def setup(self):
 		"""Draws the window and board at the beginning of the game"""

@@ -36,7 +36,7 @@ class Game:
 		self.green = 1
 		self.magenta = 1
 		self.end = False
-		self.graphics = Graphics()
+		self.graphics = Graphics(_)
 		self.board = Board()
 		self.ai = Ai(self.graphics, self.board)
 		self.oldai = OldAi(self.graphics, self.board)
@@ -62,7 +62,7 @@ class Game:
 		self.delay_ai = False
 
 		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 7),
-								  text_input=_("RESUME GAME"), font=self.get_font(75), base_color="d7fcd4",
+								  text_input=_("RESUME GAME"), font=self.get_font(75), base_color="#d7fcd4",
 								  hovering_color="White")
 		self.restart_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 7),
 								  text_input="RESTART GAME", font=self.get_font(75), base_color="#d7fcd4",
@@ -300,7 +300,7 @@ class Game:
 	def display_main_menu(self):
 		self.graphics.screen.fill("black")
 
-		menu_text = self.get_font(100).render("MAIN MENU", True, "#b68f40")
+		menu_text = self.get_font(100).render(_("MAIN MENU"), True, "#b68f40")
 		menu_rect = menu_text.get_rect(center=(self.graphics.window_size >> 1, self.graphics.window_size // 7))
 
 		self.graphics.screen.blit(menu_text, menu_rect)
@@ -319,7 +319,7 @@ class Game:
 
 		self.graphics.screen.fill("black")
 
-		options_text = self.get_font(45).render("GAME OPTIONS", True, "#b68f40")
+		options_text = self.get_font(45).render(_("GAME OPTIONS"), True, "#b68f40")
 		options_rect = options_text.get_rect(center=(self.graphics.window_size >> 1, self.graphics.window_size // 6))
 		self.graphics.screen.blit(options_text, options_rect)
 
@@ -338,7 +338,7 @@ class Game:
 
 		self.graphics.screen.fill("black")
 
-		options_text = self.get_font(45).render("AI LEVEL OPTIONS", True, "#b68f40")
+		options_text = self.get_font(45).render(_("AI LEVEL OPTIONS"), True, "#b68f40")
 		options_rect = options_text.get_rect(
 			center=(self.graphics.window_size >> 1, self.graphics.window_size // 6))
 		self.graphics.screen.blit(options_text, options_rect)
@@ -358,7 +358,7 @@ class Game:
 
 		self.graphics.screen.fill("black")
 
-		options_text = self.get_font(45).render("LANGUAGE OPTIONS", True, "#b68f40")
+		options_text = self.get_font(45).render(_("LANGUAGE OPTIONS"), True, "#b68f40")
 		options_rect = options_text.get_rect(
 			center=(self.graphics.window_size >> 1, self.graphics.window_size // 6))
 		self.graphics.screen.blit(options_text, options_rect)
@@ -384,7 +384,7 @@ class Game:
 		self.selected_legal_moves = []
 		self.selected_piece = None
 		self.board.matrix = new_board()
-		self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta))
+		self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta))
 		self.graphics.update_display(self.board, self.selected_legal_moves, self.selected_piece)
 
 	def update(self):
@@ -400,7 +400,7 @@ class Game:
 		""""This executes the game and controls its flow."""
 		self.setup()
 
-		self.graphics.draw_message("Next Turn: Green. Counter: " + str(self.green))
+		self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green))
 
 		while Game.run: # main game loop
 			self.event_loop()
@@ -419,9 +419,9 @@ class Game:
 		if self.post_check_for_endgame():
 			self.end = True
 			if self.turn == GREEN:
-				self.graphics.draw_message("MAGENTA WINS!")
+				self.graphics.draw_message(_("MAGENTA WINS!"))
 			else:
-				self.graphics.draw_message("GREEN WINS!")
+				self.graphics.draw_message(_("GREEN WINS!"))
 			self.selected_piece = None
 			self.selected_legal_moves = []
 			self.hop = False
@@ -430,12 +430,12 @@ class Game:
 		if self.turn == GREEN:
 			self.green += 1
 			self.turn = MAGENTA
-			self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta))
+			self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta))
 
 		else:
 			self.magenta += 1
 			self.turn = GREEN
-			self.graphics.draw_message("Next Turn: Green. Counter: " + str(self.green))
+			self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green))
 
 		self.selected_piece = None
 		self.selected_legal_moves = []
@@ -444,9 +444,9 @@ class Game:
 		if self.pre_check_for_endgame():
 			self.end = True
 			if self.turn == GREEN:
-				self.graphics.draw_message("MAGENTA WINS!")
+				self.graphics.draw_message(_("MAGENTA WINS!"))
 			else:
-				self.graphics.draw_message("GREEN WINS!")
+				self.graphics.draw_message(_("GREEN WINS!"))
 		#print("Checking AI Turn")
 		if not self.end:
 			self.perform_ai_turn()
@@ -466,15 +466,15 @@ class Game:
 			self.get_ai().turn_magenta(self.magenta)
 			if self.post_check_for_endgame():
 				self.end = True
-				self.graphics.draw_message("GREEN WINS!")
+				self.graphics.draw_message(_("GREEN WINS!"))
 				return
 
 			self.magenta += 1
 			self.turn = GREEN
-			self.graphics.draw_message("Next Turn: Green. Counter: " + str(self.green))
+			self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green))
 			if self.pre_check_for_endgame():
 				self.end = True
-				self.graphics.draw_message("MAGENTA WINS!")
+				self.graphics.draw_message(_("MAGENTA WINS!"))
 				return
 			print("self.turn", self.turn, ' ai g ', self.ai_green)
 		elif self.turn == GREEN and self.ai_green:
@@ -482,15 +482,15 @@ class Game:
 
 			if self.post_check_for_endgame():
 				self.end = True
-				self.graphics.draw_message("MAGENTA WINS!")
+				self.graphics.draw_message(_("MAGENTA WINS!"))
 				return
 
 			self.green += 1
 			self.turn = MAGENTA
-			self.graphics.draw_message("Next Turn: Magenta. Counter: " + str(self.magenta))
+			self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta))
 			if self.pre_check_for_endgame():
 				self.end = True
-				self.graphics.draw_message("GREEN WINS!")
+				self.graphics.draw_message(_("GREEN WINS!"))
 				return
 
 	def check_if_magenta_completes(self):

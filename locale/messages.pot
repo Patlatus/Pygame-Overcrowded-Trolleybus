@@ -17,6 +17,62 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: main.py:64
+#: main.py:65 main.py:197
 msgid "RESUME GAME"
+msgstr ""
+
+#: main.py:198
+msgid "RESTART GAME"
+msgstr ""
+
+#: main.py:199
+msgid "OPTIONS"
+msgstr ""
+
+#: main.py:200
+msgid "AI LEVEL"
+msgstr ""
+
+#: main.py:201
+msgid "LANGUAGE"
+msgstr ""
+
+#: main.py:202
+msgid "QUIT"
+msgstr ""
+
+#: main.py:204
+msgid "HUMAN VS HUMAN"
+msgstr ""
+
+#: main.py:205
+msgid "AI VS HUMAN"
+msgstr ""
+
+#: main.py:207
+msgid "HUMAN VS AI"
+msgstr ""
+
+#: main.py:208 main.py:214 main.py:217
+msgid "BACK"
+msgstr ""
+
+#: main.py:210
+msgid "Old AI (2003): Primitive"
+msgstr ""
+
+#: main.py:211
+msgid "Improved Old AI: Easy"
+msgstr ""
+
+#: main.py:213
+msgid "New AI (2023): Medium"
+msgstr ""
+
+#: main.py:215
+msgid "English"
+msgstr ""
+
+#: main.py:216
+msgid "Ukrainian"
 msgstr ""

@@ -3,6 +3,7 @@ Loosely based upon https://github.com/quyq/Pygame-Checkers
 However, here a completely different game is built while still on chessboard.
 Colors of the board cells and pieces were changed to match the original game implemented in Delphi
 """
+import locale
 import pygame, sys
 from pygame.locals import *
 from enum import Enum
@@ -33,6 +34,8 @@ class Game:
 	run = True
 
 	def __init__(self):
+		global _
+
 		self.green = 1
 		self.magenta = 1
 		self.end = False
@@ -42,8 +45,7 @@ class Game:
 		self.oldai = OldAi(self.graphics, self.board)
 		self.impoldai = ImprovedOldAi(self.graphics, self.board)
 		self.level = Level.NEW
-		_("Press ESC to show game options")
-		
+
 		self.turn = GREEN
 		self.selected_piece = None # a board location. 
 		self.hop = False
@@ -62,69 +64,74 @@ class Game:
 		self.ai_magenta = False
 		self.delay_ai = False
 
-		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 7),
-								  text_input=_("RESUME GAME"), font=self.get_font(75), base_color="#d7fcd4",
-								  hovering_color="White")
-		self.restart_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 7),
-								  text_input="RESTART GAME", font=self.get_font(75), base_color="#d7fcd4",
-								  hovering_color="White")
-		
-		self.options_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 7),
-									 text_input="OPTIONS", font=self.get_font(75), base_color="#d7fcd4",
-									 hovering_color="White")
-		self.level_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 7),
-									 text_input="AI LEVEL", font=self.get_font(75), base_color="#d7fcd4",
-									 hovering_color="White")
-		self.lang_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 6 // 7),
-									 text_input="LANGUAGE", font=self.get_font(75), base_color="#d7fcd4",
-									 hovering_color="White")
-		# pygame.image.load("assets/Quit Rect.png")
-		self.quit_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 7 // 7),
-								  text_input="QUIT", font=self.get_font(75), base_color="#d7fcd4",
-								  hovering_color="White")
-
-		self.human_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
-								  text_input="HUMAN VS HUMAN", font=self.get_font(75), base_color="#d7fcd4",
-								  hovering_color="White")
-		self.ai_starts = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
-								  text_input="AI VS HUMAN", font=self.get_font(75), base_color="#d7fcd4",
-								  hovering_color="White")
-		
-		self.ai_strikes_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 6),
-									 text_input="HUMAN VS AI", font=self.get_font(75), base_color="#d7fcd4",
-									 hovering_color="White")
-		self.options_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
-							  text_input="BACK", font=self.get_font(75), base_color="#d7fcd4",
-							  hovering_color="White")
-
-		self.old_ai_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
-								   text_input="Old AI (2003): Primitive", font=self.get_font(75), base_color="#d7fcd4",
-								   hovering_color="White")
-		self.imp_old_ai_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
-								text_input="Improved Old AI: Easy", font=self.get_font(75), base_color="#d7fcd4",
-								hovering_color="White")
-		
-		self.new_ai_choice = Button(image=None,
-									  pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 6),
-									  text_input="New AI (2023): Medium", font=self.get_font(75), base_color="#d7fcd4",
-									  hovering_color="White")
-		self.level_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
-								   text_input="BACK", font=self.get_font(75), base_color="#d7fcd4",
-								   hovering_color="White")
-		self.en_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
-								   text_input="English", font=self.get_font(75), base_color="#d7fcd4",
-								   hovering_color="White")
-		self.ua_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
-								text_input="Ukrainian", font=self.get_font(75), base_color="#d7fcd4",
-								hovering_color="White")
-		self.lang_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
-								   text_input="BACK", font=self.get_font(75), base_color="#d7fcd4",
-								   hovering_color="White")
-
 		self.en = gettext.gettext
 		ua = gettext.translation('messages', localedir='locale', languages=['ua'])
 		ua.install()
 		self.ua = ua.gettext
+
+		if locale.getdefaultlocale()[0] == 'uk_UA':
+			_ = self.ua
+
+		self.play_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 7),
+								  text_input=_("RESUME GAME"), font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+		self.restart_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 7),
+								  text_input=_("RESTART GAME"), font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+		
+		self.options_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 7),
+									 text_input=_("OPTIONS"), font=self.get_font(75), base_color="#d7fcd4",
+									 hovering_color="White")
+		self.level_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 7),
+									 text_input=_("AI LEVEL"), font=self.get_font(75), base_color="#d7fcd4",
+									 hovering_color="White")
+		self.lang_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 6 // 7),
+									 text_input=_("LANGUAGE"), font=self.get_font(75), base_color="#d7fcd4",
+									 hovering_color="White")
+		# pygame.image.load("assets/Quit Rect.png")
+		self.quit_button = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 7 // 7),
+								  text_input=_("QUIT"), font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+
+		self.human_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
+								  text_input=_("HUMAN VS HUMAN"), font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+		self.ai_starts = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
+								  text_input=_("AI VS HUMAN"), font=self.get_font(75), base_color="#d7fcd4",
+								  hovering_color="White")
+		
+		self.ai_strikes_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 6),
+									 text_input=_("HUMAN VS AI"), font=self.get_font(75), base_color="#d7fcd4",
+									 hovering_color="White")
+		self.options_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
+							  text_input=_("BACK"), font=self.get_font(75), base_color="#d7fcd4",
+							  hovering_color="White")
+
+		self.old_ai_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
+								   text_input=_("Old AI (2003): Primitive"), font=self.get_font(75), base_color="#d7fcd4",
+								   hovering_color="White")
+		self.imp_old_ai_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
+								text_input=_("Improved Old AI: Easy"), font=self.get_font(75), base_color="#d7fcd4",
+								hovering_color="White")
+		
+		self.new_ai_choice = Button(image=None,
+									  pos=(self.graphics.window_size >> 1, self.graphics.window_size * 4 // 6),
+									  text_input=_("New AI (2023): Medium"), font=self.get_font(75), base_color="#d7fcd4",
+									  hovering_color="White")
+		self.level_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
+								   text_input=_("BACK"), font=self.get_font(75), base_color="#d7fcd4",
+								   hovering_color="White")
+		self.en_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 2 // 6),
+								   text_input=_("English"), font=self.get_font(75), base_color="#d7fcd4",
+								   hovering_color="White")
+		self.ua_choice = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 3 // 6),
+								text_input=_("Ukrainian"), font=self.get_font(75), base_color="#d7fcd4",
+								hovering_color="White")
+		self.lang_back = Button(image=None, pos=(self.graphics.window_size >> 1, self.graphics.window_size * 5 // 6),
+								   text_input=_("BACK"), font=self.get_font(75), base_color="#d7fcd4",
+								   hovering_color="White")
+
+
 
 	def setup(self):
 		"""Draws the window and board at the beginning of the game"""

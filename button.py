@@ -14,6 +14,13 @@ class Button():
 		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
 		self.selected = False
 
+	def translate(self, new):
+		self.text_input = new
+		self.text = self.font.render(self.text_input, True, self.base_color)
+		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
+		self.image = self.text
+		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
+
 	def update(self, screen):
 		if self.image is not None:
 			screen.blit(self.image, self.rect)

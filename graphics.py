@@ -101,7 +101,7 @@ class Graphics:
             )
             pygame.draw.circle(self.screen, BLACK, self.pixel_coords(origin), self.piece_size, 1)
 
-    def draw_message(self, message):
+    def draw_message(self, message, _):
         """
         Draws message to the screen.
         """
@@ -112,7 +112,10 @@ class Graphics:
         self.text_surface_obj = self.font_obj.render(message, True, HIGH, BLACK)
         self.text_rect_obj = self.text_surface_obj.get_rect()
         self.text_rect_obj.center = (self.window_size >> 1, self.window_size + 20)
-        
-        self.text_surface_obj2 = self.font_obj.render("Press ESC to show game options", True, HIGH, BLACK)
+
+        print('_', _)
+        self.text_surface_obj2 = self.font_obj.render(_("Press ESC to show game options"), True, HIGH, BLACK)
         self.text_rect_obj2 = self.text_surface_obj2.get_rect()
         self.text_rect_obj2.center = (self.window_size >> 1, self.window_size + 70)
+
+

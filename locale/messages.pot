@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-12 00:29+0300\n"
+"POT-Creation-Date: 2023-04-12 00:36+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,94 +17,98 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: main.py:65 main.py:197
+#: main.py:45
+msgid "Press ESC to show game options"
+msgstr ""
+
+#: main.py:66 main.py:198
 msgid "RESUME GAME"
 msgstr ""
 
-#: main.py:198
+#: main.py:199
 msgid "RESTART GAME"
 msgstr ""
 
-#: main.py:199
+#: main.py:200
 msgid "OPTIONS"
 msgstr ""
 
-#: main.py:200
+#: main.py:201
 msgid "AI LEVEL"
 msgstr ""
 
-#: main.py:201
+#: main.py:202
 msgid "LANGUAGE"
 msgstr ""
 
-#: main.py:202
+#: main.py:203
 msgid "QUIT"
 msgstr ""
 
-#: main.py:204
+#: main.py:205
 msgid "HUMAN VS HUMAN"
 msgstr ""
 
-#: main.py:205
+#: main.py:206
 msgid "AI VS HUMAN"
 msgstr ""
 
-#: main.py:207
+#: main.py:208
 msgid "HUMAN VS AI"
 msgstr ""
 
-#: main.py:208 main.py:214 main.py:217
+#: main.py:209 main.py:215 main.py:218
 msgid "BACK"
 msgstr ""
 
-#: main.py:210
+#: main.py:211
 msgid "Old AI (2003): Primitive"
 msgstr ""
 
-#: main.py:211
+#: main.py:212
 msgid "Improved Old AI: Easy"
 msgstr ""
 
-#: main.py:213
+#: main.py:214
 msgid "New AI (2023): Medium"
 msgstr ""
 
-#: main.py:215
+#: main.py:216
 msgid "English"
 msgstr ""
 
-#: main.py:216
+#: main.py:217
 msgid "Ukrainian"
 msgstr ""
 
-#: main.py:303
+#: main.py:304
 msgid "MAIN MENU"
 msgstr ""
 
-#: main.py:322
+#: main.py:323
 msgid "GAME OPTIONS"
 msgstr ""
 
-#: main.py:341
+#: main.py:342
 msgid "AI LEVEL OPTIONS"
 msgstr ""
 
-#: main.py:361
+#: main.py:362
 msgid "LANGUAGE OPTIONS"
 msgstr ""
 
-#: main.py:387 main.py:433 main.py:490
+#: main.py:388 main.py:434 main.py:491
 msgid "Next Turn: Magenta. Counter: "
 msgstr ""
 
-#: main.py:403 main.py:438 main.py:474
+#: main.py:404 main.py:439 main.py:475
 msgid "Next Turn: Green. Counter: "
 msgstr ""
 
-#: main.py:422 main.py:447 main.py:477 main.py:485
+#: main.py:423 main.py:448 main.py:478 main.py:486
 msgid "MAGENTA WINS!"
 msgstr ""
 
-#: main.py:424 main.py:449 main.py:469 main.py:493
+#: main.py:425 main.py:450 main.py:470 main.py:494
 msgid "GREEN WINS!"
 msgstr ""

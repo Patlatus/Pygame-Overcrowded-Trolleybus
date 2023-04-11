@@ -36,12 +36,13 @@ class Game:
 		self.green = 1
 		self.magenta = 1
 		self.end = False
-		self.graphics = Graphics(_)
+		self.graphics = Graphics()
 		self.board = Board()
 		self.ai = Ai(self.graphics, self.board)
 		self.oldai = OldAi(self.graphics, self.board)
 		self.impoldai = ImprovedOldAi(self.graphics, self.board)
 		self.level = Level.NEW
+		_("Press ESC to show game options")
 		
 		self.turn = GREEN
 		self.selected_piece = None # a board location. 
@@ -215,6 +216,12 @@ class Game:
 		self.en_choice.translate(_("English"))
 		self.ua_choice.translate(_("Ukrainian"))
 		self.lang_back.translate(_("BACK"))
+
+		if self.turn == GREEN:
+			self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta), _)
+		else:
+			self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green), _)
+
 	def process_menu(self, mouse_pos):
 		if self.show_main_menu:
 			self.process_main_menu(mouse_pos)
@@ -384,7 +391,7 @@ class Game:
 		self.selected_legal_moves = []
 		self.selected_piece = None
 		self.board.matrix = new_board()
-		self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta))
+		self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta), _)
 		self.graphics.update_display(self.board, self.selected_legal_moves, self.selected_piece)
 
 	def update(self):
@@ -400,7 +407,7 @@ class Game:
 		""""This executes the game and controls its flow."""
 		self.setup()
 
-		self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green))
+		self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green), _)
 
 		while Game.run: # main game loop
 			self.event_loop()
@@ -419,9 +426,9 @@ class Game:
 		if self.post_check_for_endgame():
 			self.end = True
 			if self.turn == GREEN:
-				self.graphics.draw_message(_("MAGENTA WINS!"))
+				self.graphics.draw_message(_("MAGENTA WINS!"), _)
 			else:
-				self.graphics.draw_message(_("GREEN WINS!"))
+				self.graphics.draw_message(_("GREEN WINS!"), _)
 			self.selected_piece = None
 			self.selected_legal_moves = []
 			self.hop = False
@@ -430,12 +437,12 @@ class Game:
 		if self.turn == GREEN:
 			self.green += 1
 			self.turn = MAGENTA
-			self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta))
+			self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta), _)
 
 		else:
 			self.magenta += 1
 			self.turn = GREEN
-			self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green))
+			self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green), _)
 
 		self.selected_piece = None
 		self.selected_legal_moves = []
@@ -444,9 +451,9 @@ class Game:
 		if self.pre_check_for_endgame():
 			self.end = True
 			if self.turn == GREEN:
-				self.graphics.draw_message(_("MAGENTA WINS!"))
+				self.graphics.draw_message(_("MAGENTA WINS!"), _)
 			else:
-				self.graphics.draw_message(_("GREEN WINS!"))
+				self.graphics.draw_message(_("GREEN WINS!"), _)
 		#print("Checking AI Turn")
 		if not self.end:
 			self.perform_ai_turn()
@@ -466,15 +473,15 @@ class Game:
 			self.get_ai().turn_magenta(self.magenta)
 			if self.post_check_for_endgame():
 				self.end = True
-				self.graphics.draw_message(_("GREEN WINS!"))
+				self.graphics.draw_message(_("GREEN WINS!"), _)
 				return
 
 			self.magenta += 1
 			self.turn = GREEN
-			self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green))
+			self.graphics.draw_message(_("Next Turn: Green. Counter: ") + str(self.green), _)
 			if self.pre_check_for_endgame():
 				self.end = True
-				self.graphics.draw_message(_("MAGENTA WINS!"))
+				self.graphics.draw_message(_("MAGENTA WINS!"), _)
 				return
 			print("self.turn", self.turn, ' ai g ', self.ai_green)
 		elif self.turn == GREEN and self.ai_green:
@@ -487,10 +494,10 @@ class Game:
 
 			self.green += 1
 			self.turn = MAGENTA
-			self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta))
+			self.graphics.draw_message(_("Next Turn: Magenta. Counter: ") + str(self.magenta), _)
 			if self.pre_check_for_endgame():
 				self.end = True
-				self.graphics.draw_message(_("GREEN WINS!"))
+				self.graphics.draw_message(_("GREEN WINS!"), _)
 				return
 
 	def check_if_magenta_completes(self):

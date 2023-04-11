@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 22:23+0300\n"
-"PO-Revision-Date: 2023-04-12 00:16+0300\n"
+"POT-Creation-Date: 2023-04-12 00:29+0300\n"
+"PO-Revision-Date: 2023-04-12 00:30+0300\n"
 "Last-Translator: <EMAIL@ADDRESS>\n"
 "Language-Team: Ukrainian\n"
 "Language: uk\n"
@@ -77,3 +77,35 @@ msgstr "Англійська"
 #: main.py:216
 msgid "Ukrainian"
 msgstr "Українська"
+
+#: main.py:303
+msgid "MAIN MENU"
+msgstr "ГОЛОВНЕ МЕНЮ"
+
+#: main.py:322
+msgid "GAME OPTIONS"
+msgstr "ІГРОВІ ОПЦІЇ"
+
+#: main.py:341
+msgid "AI LEVEL OPTIONS"
+msgstr "ВИБІР РІВНЯ ШІ"
+
+#: main.py:361
+msgid "LANGUAGE OPTIONS"
+msgstr "ВИБІР МОВИ"
+
+#: main.py:387 main.py:433 main.py:490
+msgid "Next Turn: Magenta. Counter: "
+msgstr "Наступний: Маджента. Хід:"
+
+#: main.py:403 main.py:438 main.py:474
+msgid "Next Turn: Green. Counter: "
+msgstr "Наступний: Зелений. Хід:"
+
+#: main.py:422 main.py:447 main.py:477 main.py:485
+msgid "MAGENTA WINS!"
+msgstr "МАДЖЕНТА ВИГРАВ!"
+
+#: main.py:424 main.py:449 main.py:469 main.py:493
+msgid "GREEN WINS!"
+msgstr "ЗЕЛЕНИЙ ВИГРАВ!"

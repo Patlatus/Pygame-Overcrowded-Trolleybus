@@ -1,20 +1,20 @@
-# MIT License
-# Copyright (C) 2023 Bohdan Dovhan a.k.a Julfy Patlatus
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# Patlatus <julfy@i.ua>, 2023.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 22:23+0300\n"
+"POT-Creation-Date: 2023-04-12 00:29+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: main.py:65 main.py:197
@@ -75,4 +75,36 @@ msgstr ""
 
 #: main.py:216
 msgid "Ukrainian"
+msgstr ""
+
+#: main.py:303
+msgid "MAIN MENU"
+msgstr ""
+
+#: main.py:322
+msgid "GAME OPTIONS"
+msgstr ""
+
+#: main.py:341
+msgid "AI LEVEL OPTIONS"
+msgstr ""
+
+#: main.py:361
+msgid "LANGUAGE OPTIONS"
+msgstr ""
+
+#: main.py:387 main.py:433 main.py:490
+msgid "Next Turn: Magenta. Counter: "
+msgstr ""
+
+#: main.py:403 main.py:438 main.py:474
+msgid "Next Turn: Green. Counter: "
+msgstr ""
+
+#: main.py:422 main.py:447 main.py:477 main.py:485
+msgid "MAGENTA WINS!"
+msgstr ""
+
+#: main.py:424 main.py:449 main.py:469 main.py:493
+msgid "GREEN WINS!"
 msgstr ""

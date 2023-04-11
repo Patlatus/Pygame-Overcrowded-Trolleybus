@@ -117,3 +117,5 @@ class Graphics:
         self.text_surface_obj2 = self.font_obj.render(self._("Press ESC to show game options"), True, HIGH, BLACK)
         self.text_rect_obj2 = self.text_surface_obj2.get_rect()
         self.text_rect_obj2.center = (self.window_size >> 1, self.window_size + 70)
+
+
